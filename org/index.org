@@ -1,0 +1,43 @@
+#+TITLE: knowledge repo
+#+SUBTITLE: Overview
+#+AUTHOR: Daniel Guimaraes
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+#+HEADER: :results output silent :headers '("\\usepackage{tikz}")
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="static/style.css"/>
+#+begin_export html
+<ul class='navbar'> 
+  <li><a href="/">Home</a></li>
+  <li><a class="active" href="/static/data-eng/index.html">Data Engineering</a></li>
+</ul>
+#+end_export
+
+* About me
+I'm a software engineer based in Munich originally from Rio de Janeiro.
+I'm a software engineer based in Munich originally from Rio de Janeiro.
+I'm a software engineer based in Munich originally from Rio de Janeiro.
+I'm a software engineer based in Munich originally from Rio de Janeiro.
+I'm a software engineer based in Munich originally from Rio de Janeiro.
+#+begin_export html
+<img id="profile-img" src="/static/img/profile-grey.jpg"
+#+end_export
+
+# #+begin_src elisp :results list :exports results
+# (let ((dirs (split-string (shell-command-to-string "ls *.org"))))
+# (mapcar #'(lambda (d)
+#    (format "[[file:%s]]" d))
+#   dirs))
+# #+end_src
+
+# # export data engineering files to html   
+# #+begin_src emacs-lisp :exports none
+# (let ((dirs (split-string (shell-command-to-string "ls ../data-eng/"))))
+#   (find-file "../data-eng/")
+#   (remove nil (mapcar #'(lambda (d) 
+#              (if (string-suffix-p ".org" d)
+#                   (progn
+#                      (print d)
+#                      (find-file d)
+# 		     (org-html-export-to-html))))
+#    dirs)))
+# #+end_src
