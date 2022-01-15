@@ -4,11 +4,13 @@
 #+OPTIONS: toc:nil
 #+OPTIONS: num:nil
 #+HEADER: :results output silent :headers '("\\usepackage{tikz}")
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="static/code.css"/>
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="static/style.css"/>
 #+begin_export html
 <ul class='navbar'> 
   <li><a href="/">Home</a></li>
-  <li><a class="active" href="/static/data-eng/index.html">Data Engineering</a></li>
+  <li><a href="/static/data-eng/index.html">Data Engineering</a></li>
+  <li><a href="/static/soft-eng/index.html">Software Engineering</a></li>
 </ul>
 #+end_export
 
@@ -19,8 +21,17 @@ I'm a software engineer based in Munich originally from Rio de Janeiro.
 I'm a software engineer based in Munich originally from Rio de Janeiro.
 I'm a software engineer based in Munich originally from Rio de Janeiro.
 #+begin_export html
-<img id="profile-img" src="/static/img/profile-grey.jpg"
+<img id="profile-img" src="/static/img/profile-grey.jpg"/>
+<ul class='contact'>
+  <li><a href="mailto:dcguim@gmail.com">
+    <img id="contact-img" src="/static/img/email.png"/></a></li>
+  <li><a href="https://www.linkedin.com/in/dguim/">
+    <img id="contact-img" src="/static/img/linkedin.png"/></a></li>
+  <li><a href="https://github.com/dcguim">
+    <img id="contact-img" src="/static/img/github.png"/></a></li>
+</ul>
 #+end_export
+
 
 # #+begin_src elisp :results list :exports results
 # (let ((dirs (split-string (shell-command-to-string "ls *.org"))))

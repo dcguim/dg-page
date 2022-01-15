@@ -20,7 +20,7 @@ h1 {
     text-align: center;
 }
 
-h2, h3, h4 {
+h2, h3, h4, a {
     color: #7d74e3;
 }
 
@@ -46,13 +46,30 @@ ul.navbar li {
 ul.navbar li a {
     display: block;
     padding: 8px;
-    
     background-color: #dddddd;  
 }
-ul.navbar li a:visited{
-    color:  #7d74e3;
+
+.contact {
+    display: table;
 }
 
+ul.contact {
+  list-style-type: none;
+  margin: auto;
+  padding: 5px;
+}
+
+ul.contact li {
+    vertical-align: middle;
+    display: table-cell;
+    padding: 10px;
+}
+#contact-img {
+    width: 40px;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
 #content {
     max-width: 800px;
     margin: auto;

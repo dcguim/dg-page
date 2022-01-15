@@ -1,0 +1,173 @@
+#+TITLE: knowledge repo
+#+SUBTITLE: Software Engineering Topics
+#+AUTHOR: Daniel Guimaraes
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+#+HEADER: :results output silent :headers '("\\usepackage{tikz}")
+#+HEADER: :results output silent :headers '("\\usepackage{pgfplots}")
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../code.css"/>
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css"/>
+#+begin_export html
+<ul class='navbar'> 
+  <li><a href="/">Home</a></li>
+  <li><a href="/static/data-eng/index.html">Data Engineering</a></li>
+  <li><a href="/static/soft-eng/index.html">Software Engineering</a></li>
+</ul>
+#+end_export
+
+
+* Computational Efficiency
+  The goal of learning Big O notations is to be able to describe how efficient
+  is a particular algorithm. Understanding the time and space resources
+  consumed by a particular algorithm allow one to compare different alternative
+  solutions and decide for the most appropriate one.
+
+  This concept is so important, that FAANGs (or MANGAs) often ask
+  Software Engineer interviewees if they can do better/faster than the inital
+  proposed solution. To approach this question, one must have understand metrics
+  compare algorithms such as Big O notation.
+
+  Concretely, we want fast algorithms! However, we should also consider other
+  resources such as the space (memory) consumed by algorithms. The definition
+  of /efficiency/ goes something like this:
+
+  /""An algorithm is efficient if, when implemented, it runs quickly on real
+  input instances""/
+
+  Let's jump into a problem, to understand how can we develop the mathematical
+  language to measure an algorithm's efficiency.
+
+** Stable Matching Problem (SMB)
+   This well-known problem can be formulated like:
+
+  /""Given n men and n women, where each person has ranked all members of the opposite sex in order of preference, marry the men and women together such that there are no two people of opposite sex who would both rather have each other than their current partners. When there are no such pairs of people, the set of marriages is deemed stable./""
+
+  Imagine what kind of information we would have to receive to propose such
+  mapping. Assume, for simplicity, that each human can be identified by a simple
+  integer. We have $2n$ humans, $n$ men and $n$ women. For each gender, we also
+  have preference lists, that is, $n^2$. Therefore, the input for this problem
+  could be something like a list tuples, where a tuple, and index $i$ indicates a
+  preference $(1,2,3)$, i.e. $human_i$ is interested firstly in $human_1$, then
+  in $human_2$ then in $human_3$. We could have for instance the first half
+  of tuples indicating the women's preference, and the second half the men's.
+  This way our input size, of the number of tuples would be $2n^2$.
+
+  Okay, we understand the problem, and the input we got, now how to get to the
+  solution? Instead of wondering too long of the best approach, let's do the
+  opposite , what would be the worst possible way to approach this problem?
+
+** Brute force approach
+   The worst case approach implies generating all possible solutions.
+   In other words, defining seach space for this problem. Once the search space
+   is defined we can pick out the optimal solution.
+
+   Our solution would be a set of tuples of size $n$, representing the n-matches
+   (or one /matching/) between man and woman. Assume $n=3$, then we need to
+   provide 3 tuples, $(w_i, m_j)$ meaning $woman_i$  was matched to $man_j.
+   In this case, the first woman would be matched to any of the three men, the
+   second woman, to any of the two, and so forth, which brings us to $n!$ total
+   matchings.
+
+   Therefore, we could brute-force our way to the solution by enumerate all
+   $n!$ possible matchings, and checking if each of them is a stable matching,
+   which would of course also add to the complexity.
+
+   Optimally we would like to write algorithms with polynomial running time.
+   That means that if we receive an input of size $N$ than it's running time
+   should be bound by $CN^p$ steps. You can think about computational steps as
+   as the time it takes to run an assembly, Java, or C code instruction. This
+   way when the input size doubles $2N$, than number of steps become $C(2N)^p$,
+   that means only a $2^p$ increase. Of course, we would like $p$ to be a small
+   integer, normally $p\le 2$.
+
+** Gale-Shapley 1962
+
+   Going back to the SMP, we would like to provide an efficient solution, i.e.
+   one that it's running time executes less or equal quadratic polynomial steps
+   given an input of size $N$. how would we be able to provide a solution that is
+   guaranteed to provide a stable matching?
+
+   Gale-Shapley discoverd in 1962 a way to do this. The pseudo-code would look
+   like:
+#+begin_src python
+  while (pick_available_men() != []):
+    man = pick_available_men()
+    woman = not_proposed_women(man)
+    if (is_available(woman)):
+	match(man, woman)
+    else if (woman_prefer(woman, man)):
+	// if man is higher on her preference list than her current partner
+	match(woman, man)
+    else:
+       reject(woman, man)
+#+end_src
+
+  Firstly, does this algorithm terminates at all?
+
+  Is it possible that men keeps proposing indefinitely? Because each men proposes his preferred woman
+  increasingly and there are only n of them. In each iteration of the while loop
+  a men proposed to a woman in his preference list, and he will never propose to
+  this woman again in the future. Therefore, in the worst case, each men would
+  propose from the first to the last woman in his preference list, and this
+  algorithm should take at most $n^2$ while-loop iterations.
+
+  Secondly, does this algorithm always provides a matching on the end, is it possible
+  that a man proposes to every woman on this preference list, and still ends up
+  alone?
+
+  According to the algorithm, if a man is free, we would enter the
+  while-loop, as the number of men and women are the same, and there is one free
+  man there must be also one free woman, if there is an available woman then t
+  hey would match.
+
+  Surely this algorithm terminates, and provides us a matching. But is this
+  matching stable?
+
+  A stable matching means that there are no other unsable match, which are higher
+  on each other's preference list than their current partners. Let's assume there
+  is such match, $(w_i, m_j)$, although currently $(w_i, m_a)$ and $(w_b, m_j)$
+  for $i\ne b$ and $j\ne a$. How would this have happened?
+
+  When $m_j$ proposed $w_i$, she would be either available, in which case they
+  would match and $m_a$ wouldn't have a chance. Or, she would have been with
+  someone else, we know that this man would be at most as preferable as $m_a$,
+  as he was who she ended up with. Nevertheless, $m_j$ would have matched her
+  if she was already matched with $m_a$, leaving us with a contradiction.
+
+  But what if $m_j$ haven't even proposed at all to $w_i$?
+
+  As men propose in a decreasing preference order, $m_j$, wouldn't propose to
+  $w_j$, if and only if, she was bellow in his preference list, however,
+  $pref(w_i) > pref(w_b)$ as $(w_i, m_j)$ is a unstable match.
+  
+** Asymptotic Order Growth
+   Beyond the correctness of SMB, how would we describe the running time of it?
+   We discussed, that in the worst input case, it would take $n^2$
+   while loop iterations, but what does that tells us about time?
+
+   It seems that what we are saying is as $n$ grows that the running time of
+   the worst case will grow at a rate at most equal to some function $f(n) = n^2$.
+   We could describe this function in terms of the number of computational
+   steps $f(n) = 13n^2+ 2n+ 48$ for the worst case input. This would be
+   meaningless while requiring huge efforts as in may vary between different
+   pieces of hardware or using or compilers.
+   
+*** Assymptotic Upper and Lower Bounds
+    Keeping in mind the previous running time measured as the number of
+    computational steps per input of size $n$, $f(n) = 13n^2+ 2n+ 48$. The upper
+    bound of our function $f$, is another function $u(n)$, that for sufficiently
+    large $n$, such that the relation $f(n) \le ku(n)$ holds for a constant $k$.
+    
+    $f(n) = 13n^2 + 2n + 48 \le 13n^2 + 2n^2 + 48n^2 = (13 + 2 + 48)n^2$
+
+    Therefore, for $k=63$ and $u(n)=n^2$ we can say that $f(n)$ is of degree
+    $u(n)$, or $f(n)$ is $O(n^2)$. That all sounds very fancy, but what exactly
+    that means in simple terms?
+
+    If I tell you that our solution $f(n)$ is $O(n^2)$ that means that for
+    large inputs $n$, or assymptotically, our solution which take exactly $f(n)$
+    computational steps to execute is /at most/ a constant $k$
+    away from the quadratic function $n^2$.
+
+
+
