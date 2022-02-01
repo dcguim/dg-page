@@ -1,0 +1,192 @@
+#+TITLE: Stacks and Queues
+#+SUBTITLE: Software Engineering Topics
+#+AUTHOR: Daniel Guimaraes
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+#+HEADER: :results output silent :headers '("\\usepackage{tikz}")
+#+HEADER: :results output silent :headers '("\\usepackage{pgfplots}")
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../code.css"/>
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css"/>
+
+#+begin_export html
+<ul class='navbar'> 
+  <li><a href="/">Home</a></li>
+  <li><a href="/static/data-eng/index.html">Data Engineering</a></li>
+  <li><a href="/static/soft-eng/index.html">Software Engineering</a></li>
+</ul>
+#+end_export
+
+
+* LeetCode: [[/https://leetcode.com/problems/queue-reconstruction-by-height][Queue Reconstruction by Height - 406]]
+   
+#+begin_src java
+  class Solution {
+      public int queueSize = 0;
+    
+      public void addToQueue(int[][] queue, int[] person){
+	  int personPos = queue.length - 1 - queueSize + person[1];
+	  if (queue[personPos][0] == 0){
+	      queue[personPos] = person;
+	      queueSize += 1;
+	  } else{
+	      // shift all people in front of the queue until personPos one position down
+	      for (int i=queue.length - queueSize; i<= personPos; i++){
+		queue[i-1] = queue[i];                
+	      }
+	      queue[personPos] = person;
+	      queueSize += 1;
+	  }
+      }
+    
+      public int[][] reconstructQueue(int[][] people) {
+	  Arrays.sort(people, (int[] p1, int[] p2) ->
+		      (p2[0] != p1[0]) ? p2[0]-p1[0] : p1[1]-p2[1]);
+	  int[][] queue = new int[people.length][2];
+	  // looping for all people
+	  for (int i=0; i< people.length; i++) addToQueue(queue, people[i]);
+	  return queue;
+      }
+  }
+#+end_src
+
+The key part of solving this question is that it is way better to construct the
+queue with heights in a decreasing fashion. As each person $i$ is described as
+$[h_i,k_i]$, where $k_i$ is the number of people with bigger or equal height in
+front of $i$ in the queue, therefore, if we already queued all people $p$
+with $h_p>=h_i$, then we can be sure that we have placed person $i$ in the right
+position. Additionally, one must be careful queueing people with the same height
+so if two people $p_1$ and $p_2$ have the same height, and $k_1>k_2$ if we first
+queue $p_1$ we will calculate the position in the queue without taking into
+consideration $p_2$, and later on when queueing $p_2$ in front of $p_1$, $p_1$
+will be in off by one. Hence que sorting:
+$$(p2[0] != p1[0]) ? p2[0]-p1[0] : p1[1]-p2[1]$$
+
+Regarding complexity, there is $O(nlog(n))$ for sorting the list, so this is the
+first obvious lowerbound. As we loop for all people, and for each person we have
+to push every people in front of him upwards, in the worst case cenario which
+everyone have the same height, we have to keep pushing the previously queued
+individuals up. Hence, the complexity is $O(n^2)$.
+
+* GeeksForGeeks: [[https://practice.geeksforgeeks.org/problems/lru-cache/1][LRU Cache]]
+#+begin_src java
+  class LRUCache
+  {
+      static Deque<ArrayList<Integer>> cache;
+      static Deque<ArrayList<Integer>> auxCache;
+      static int capacity;
+      //Constructor for initializing the cache capacity with the given value.
+      LRUCache(int cap)
+      {
+	  cache = new ArrayDeque<ArrayList<Integer>>(cap);
+	  auxCache = new ArrayDeque<ArrayList<Integer>>(cap);
+	  capacity = cap;
+      }
+    
+      //Function to return value corresponding to the key.
+      public static int get(int key)
+      {
+	  if (cache.size() == 0) return -1;
+	  int i = 0;
+	  int keyValue = -1;
+	  while (i < cache.size()){
+	      ArrayList<Integer> pair = cache.removeFirst();
+	      if (pair.get(0) == key) keyValue = pair.get(1);
+	      cache.addLast(pair);
+	      i+=1;
+	  }
+	  if (keyValue >= 0){
+	      return keyValue;
+	  }
+	  return -1;
+      }
+      //Function for storing key-value pair.
+      public static void set(int key, int value)
+      {
+	  int val = get(key);
+	  if (val == -1) {
+	      ArrayList<Integer> keyVal = new ArrayList<Integer>(2){{
+		 add(key);
+		 add(value);
+	      }};
+	      if (cache.size() < capacity){
+		 cache.addFirst(keyVal);
+	      }else{
+		  cache.removeLast();
+		  cache.addFirst(keyVal);
+	      }
+	  } else{
+	      ArrayList<Integer> pair = null;
+	      // loop until the the pair with key == key is in the top
+	      while (pair == null || pair.get(0) != key){
+		  pair = cache.removeFirst();
+		  auxCache.addFirst(pair);
+	      }
+	      // store the new top pair in the pair variable
+	      pair = auxCache.removeFirst();
+	      pair.set(1, value);
+	      // push all the items left in the auxCache to the main cache
+	      while(auxCache.size() > 0){
+		  ArrayList<Integer> a = auxCache.removeFirst();
+		  cache.addFirst(a);
+	      }
+	      // push the updated top pair to the queue
+	      cache.addFirst(pair);
+	      auxCache.clear();
+	  }
+      }
+  }
+#+end_src
+
+Although this is a great question to practice queues, the description of this
+problem is somewhat ambiguous. For example, it is not clear what is the state
+of the list when an existing key is updated, for example, say there is a key-value
+pair $[21, 33]$ in the LRU cache, and the user then SET [$21$ $35$], then the queue
+could be like:
+|---------+---------------------------+---------|
+| [3 93]  |                           | [21 35] |
+| [15 74] |                           | [3 93]  |
+| [12 7]  | SET [22 33] $\rightarrow$ | [15 74] |
+| [21 33] |                           | [12 7]  |
+| [74 11] |                           | [74 11] |
+|---------+---------------------------+---------|
+
+OR 
+
+|---------+---------------------------+---------|
+| [3 93]  |                           | [22 35] |
+| [15 74] |                           | [74 11] |
+| [12 7]  | SET [22 33] $\rightarrow$ | [3 93]  |
+| [21 33] |                           | [15 74] |
+| [74 11] |                           | [12 7]  |
+|---------+---------------------------+---------|
+
+The solution above, assumed the first option holds, which goes with the logic
+normally employed by the last recently updated implementation of caches, however,
+the code verifying the result understand a LRU cache in another way. As this
+assumption didn't lead to 100% successful test coverage in GeeksForGeeks.
+
+
+Having said that, let's analyse the complexity of the $get$ and $set$ operations.
+The LRU cache was implemented with a double-sided queue, i.e. we can add elements
+to the bottom or to the top of the queue. As the ArrayDeque implementation used
+has no capacity restrictions, and they grow as necessary, their operations are
+said to contain amortized constant time, that means, that usually it takes
+constant time, however, it can take $O(n)$ when a user exceed the size of the
+array deque and it must automatically grow, that entails, creating a bigger
+array and copying the elements from the old to the new array. There are exceptions
+such as the remove operations that receive an element as a parameter, which run
+in linear time. That's fair, they must first find the element down the deque to
+remove it. In this implementation we use only amortized constant time operations
+and we don't automatically grows the queue, we set the capacity as it's fixed size.
+
+The $get$ operation loops throught the list once $O(n)$, and look for the keys,
+regardless if it finds the key in the first or the last position it look at all
+the elements and leaves the position of the elements unchanged.
+
+The $set$ operation first must decide if it is an update or a new element,
+so it calls $get$, first. If the element does not exist it it adds in constant
+time, if it does, it must first remove the element of the list, to do this, an
+auxiliary deque is used to store the values before the element. Then, it adds
+the values back to the queue and updates the value of the existing key. Notice,
+it will take $\le n$ times to find the key plus $\le n$ times to put it back.
+Therefore, the $set$ will also take $O(n)$.

@@ -1,0 +1,107 @@
+#+TITLE: Dynamic Programming and recursion
+#+SUBTITLE: Software Engineering Topics
+#+AUTHOR: Daniel Guimaraes
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+#+HEADER: :results output silent :headers '("\\usepackage{tikz}")
+#+HEADER: :results output silent :headers '("\\usepackage{pgfplots}")
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../code.css"/>
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css"/>
+
+#+begin_export html
+<ul class='navbar'> 
+  <li><a href="/">Home</a></li>
+  <li><a href="/static/data-eng/index.html">Data Engineering</a></li>
+  <li><a href="/static/soft-eng/index.html">Software Engineering</a></li>
+</ul>
+#+end_export
+
+* GeeksForGeeks: [[https://practice.geeksforgeeks.org/problems/0-1-knapsack-problem0945/1][0 - 1 Knapsack Problem]]
+#+begin_src java
+class Solution 
+{ 
+    //Function to return max value that can be put in knapsack of capacity W.
+    static int knapSack(int W, int wt[], int val[], int n) 
+    { 
+        // dp[i][j] is the value obtained by the sum of weights i and by looking until index j of wt[] and val[]
+        int[][] dp = new int[W+1][n];
+        for (int i = 0; i <= W; i++){
+            for (int j = 0; j < n; j++){
+                // if the considered capacity i is bigger than the j-th weight
+                if (i >= wt[j]) // the first element can be either zero or the jth value.
+                    if (j == 0) dp[i][0] = val[j];
+                    else dp[i][j] = Math.max(dp[i][j-1], dp[i-wt[j]][j-1] + val[j]);
+                else if (j > 0) // just take previous element
+                    dp[i][j] = dp[i][j-1];
+            }
+        }
+    return dp[W][n-1];
+    }
+}
+#+end_src
+
+There are two important information that must be tracked in this problem:
+
+  1. the total sum of weights for a particular selection
+  2. the picked items
+
+This solution uses $dp[W+1][n]$ to track the total sum of weights of the picked
+items in the rows, and the limit of the index considered for the items in the
+columns. We already know that the space and time complexity of this problem is
+$O(WN)$. The advantage of using the columns as the limit of indexes considered
+is that we can always asure that an item is not being picked twice, i.e. when
+iterating at the jth column we can be sure that this number was not picked before
+for all solutions $dp[i][k]$ for $k < j$.
+
+Subproblems are used to build up bigger problems, as we define:
+$$d[i][j]=Math.max(dp[i][j-1],dp[i-wt[j]][j-1]+val[j])$$
+
+that means that we will loop for every item, and select the max value obtained by
+either picking the last value $dp[i][j-1]$, i.e. the value considering the from
+the first to the last item, or $dp[i-wt[j]][j-1] + val[j]$, i.e. by picking the
+jth item. As the jth item has weight $wt[j]$ then the total weight before was
+$i-wt[j]$.
+
+* LeetCode: [[https://leetcode.com/problems/can-i-win/][Can I Win - 464]]
+   
+ #+begin_src java
+   class Solution {
+       Map<List<Boolean>, Boolean> memory;
+       List<Boolean> choosedNumbers;
+
+       public boolean canIWin(int maxChoosableInteger, int desiredTotal) {
+	   if (desiredTotal == 0) return true;
+	   //numbers don't add up to dT
+	   if ((1+maxChoosableInteger)*maxChoosableInteger/2<desiredTotal) return false;
+
+	   // initialize memory and initial state
+	   memory = new HashMap<>();
+	   Boolean[] array = new Boolean[maxChoosableInteger];
+	   Arrays.fill(array, false);
+	   choosedNumbers = Arrays.asList(array);
+	   return recCanIWin(desiredTotal, choosedNumbers);
+       }
+       // returning true means that the current player won and false otherwise
+       public Boolean recCanIWin(int desiredTotal, List<Boolean> state){
+	   if (!memory.containsKey(state)){
+	       // the other player won!
+	       if (desiredTotal <= 0) return false;
+	       // if dT > 0 the current player picks an unchoosed number
+	       for (int i = 0; i< state.size(); i++){
+		   if (!state.get(i)){
+		       state.set(i, true);
+		       // if it's not the case that the next player wins with this choice
+		       if (!recCanIWin(desiredTotal - (i+1), state)){
+			   state.set(i, false);
+			   memory.put(new ArrayList<Boolean>(state), true);
+			   return true;
+		       }
+		       state.set(i, false);
+		   }
+	       }
+	       memory.put(new ArrayList<Boolean>(state), false);
+	   }
+	   return memory.get(state);
+       }
+   }
+ #+end_src

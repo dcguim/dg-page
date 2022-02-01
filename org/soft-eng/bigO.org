@@ -3,8 +3,7 @@
 #+AUTHOR: Daniel Guimaraes
 #+OPTIONS: toc:nil
 #+OPTIONS: num:nil
-#+HEADER: :results output silent :headers '("\\usepackage{tikz}")
-#+HEADER: :results output silent :headers '("\\usepackage{pgfplots}")
+#+LaTeX_HEADER: \usepackage{tikz}
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../code.css"/>
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css"/>
 #+begin_export html
@@ -169,5 +168,18 @@
     computational steps to execute is /at most/ a constant $k$
     away from the quadratic function $n^2$.
 
+    Simmilarly, the lower bounds we want the inverse relation, $f(n) \ge k.l(n)$.
+    That means, for a particular constant $k$ and all values of $n\ge n_0$
+    our time function $f(n)$ is above the lower bounds function $l(n)$.
 
+#+begin_src latex :exports results :results raw file :file ex.png :output-dir ../img/
+  \begin{tikzpicture}
+    \draw node[circle, draw] (a) {$a$}
+      node[circle, draw, right of = a] (b) {$b$}
+      node[circle, draw, below of = a] (c) {$c$}
+      node[circle, draw, below of = b] (d) {$d$};
+  \end{tikzpicture}
+#+end_src
 
+#+RESULTS:
+[[file:../img/ex.png]]

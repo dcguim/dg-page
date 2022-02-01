@@ -3,7 +3,7 @@
 #+AUTHOR: Daniel Guimaraes
 #+OPTIONS: toc:nil
 #+OPTIONS: num:nil
-#+HEADER: :results output silent :headers '("\\usepackage{tikz}")
+#+LaTeX_HEADER: \usepackage{tikz}
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../code.css"/>
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css"/>
 #+begin_export html
@@ -14,10 +14,26 @@
 </ul>
 #+end_export
 
-
-* Topics 
+* Theoretical
 - [[file:bigO.html][Big O Notation]]
-- [[file:recursion.html][Recursion problems]]
+* Programming problems
+** Data Structures
+- [[file:arraystring.html][Arrays and strings]]
+- [[file:stackqueue.html][Stacks and queues]]
+- [[file:linkedlists.html][Linked lists]]
+** Algorithms
+- [[file:bitwisemanip.html][Bitwise manipulation]]
+- [[file:sortsearch.html][Sorting and searching]]
+- [[file:dynprog.html][Dynamic programming and recursion]]
 
+
+#+begin_src latex :exports results :results raw file :file latex.jpg
+  \begin{tikzpicture}
+    \draw node[circle, draw] (a) {$a$}
+      node[circle, draw, right of = a] (b) {$b$}
+      node[circle, draw, below of = a] (c) {$c$}
+      node[circle, draw, below of = b] (d) {$d$};
+  \end{tikzpicture}
+#+end_src
 
 

@@ -1,0 +1,174 @@
+#+TITLE: Linked lists
+#+SUBTITLE: Software Engineering Topics
+#+AUTHOR: Daniel Guimaraes
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+#+HEADER: :results output silent :headers '("\\usepackage{tikz}")
+#+HEADER: :results output silent :headers '("\\usepackage{pgfplots}")
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../code.css"/>
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css"/>
+
+#+begin_export html
+<ul class='navbar'> 
+  <li><a href="/">Home</a></li>
+  <li><a href="/static/data-eng/index.html">Data Engineering</a></li>
+  <li><a href="/static/soft-eng/index.html">Software Engineering</a></li>
+</ul>
+#+end_export
+
+* LeetCode: [[https://leetcode.com/problems/swapping-nodes-in-a-linked-list/][Swapping nodes in a Linked List - 1721]]
+
+ #+begin_src java
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode() {}
+ *     ListNode(int val) { this.val = val; }
+ *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }
+ * }
+ */
+class Solution {
+    public ListNode swapNodes(ListNode head, int kBegPos) {
+        // determining the linked list size
+        ListNode curr = head;
+        int size = 1;
+        while (curr.next != null){
+            curr = curr.next;
+            size+=1;
+        }
+        // determining the beginning and end positions of swapped nodes
+        int kEndPos;
+        if (kBegPos >= size/2+1){
+            kEndPos = kBegPos;
+            kBegPos = size - kBegPos + 1;   
+        } else{
+           kEndPos = size - kBegPos + 1;
+        }
+        // finding the references for beginning and end nodes and it's neighbors.
+        curr = head;
+        ListNode kBegPrev, kBeg, kBegNext, kEndPrev, kEnd, kEndNext;
+        kBegPrev = kBeg = kBegNext = kEndPrev = kEnd = kEndNext = null;
+        int currIndex = 1;
+        while (curr != null){            
+            if (currIndex == kBegPos-1) {
+                kBegPrev = curr;
+            } else if(currIndex == kBegPos){
+                kBeg = curr;
+            } else if (currIndex == kBegPos+1){
+                kBegNext = curr;
+            } 
+            if (currIndex == kEndPos-1){
+                kEndPrev = curr;
+            } else if (currIndex == kEndPos){
+                kEnd = curr;
+            } else if (currIndex == kEndPos+1){
+                kEndNext = curr;
+            }
+            currIndex +=1;
+            curr = curr.next;
+        }
+        // swapping the beginning and end nodes
+        if (kEnd != null && kBegNext != null){
+            if (kBegPrev != null) kBegPrev.next = kEnd;
+            if (kBegNext != kEnd) kEnd.next = kBegNext;
+            else kEnd.next = kBeg;
+        }
+        if (kEndPrev != null && kBeg != null){
+            if (kEndPrev != kBeg) kEndPrev.next = kBeg;
+            if (kEndNext != null) kBeg.next = kEndNext;
+            else kBeg.next = null;
+        }
+        if (kBegPos == 1) return kEnd;
+        return head;
+    }
+}
+ #+end_src
+  
+Firstly, although not obviously stated in the problem description, it was
+assumed that one must swap nodes not just values. Therefore it would be possible
+to write a more efficient algorithm, however, with similar upper bounds by
+preserving the original structure.
+
+The code comments are pretty self explanatory
+about the behaviour of the code, one must keep in mind edge cases when defining
+the nodes involved in the swap, for instance when the node previous to the
+end node is the beginning node then the ending node will point directly to the
+beginning node, as opposed to the node next to the beginning node. Additionally,
+when the head node is swapped, then the reference to the head must be the ending
+node.
+
+The complexity of this code is $O(n)$. It is hard to imagine a solution with a
+tighter upper bound  as one must iterate throughout the linked list to define
+it's size and hence the position of the end node.
+
+* GeeksForGeeks: [[https://practice.geeksforgeeks.org/problems/flattening-a-linked-list/1/][Flattening a linked list]]
+
+#+begin_src java
+class Solution
+{
+    void insert(Node curr, Node sub){
+        Node prev, next;
+        next = curr;
+        do {
+            prev = next;
+            next = next.next;
+        } while (next != null && sub.data > next.data);
+        curr.bottom = sub.bottom;
+        sub.bottom = null;
+        prev.next = sub;
+        sub.next = next;
+    }
+    Node flatten(Node root){
+        // ensure that the horizontal linked list is ordered
+        Node head = mergeSort(root);
+        Node curr = head;
+        // flatten the linked list
+        while (curr!=null){
+            while (curr.bottom != null){
+                insert(curr, curr.bottom);
+            }
+            curr = curr.next;
+        }
+        Node a = head;
+        Node sub = a;
+        // transform the horizontally flattened list to a vertically flattened one
+        while (a.next != null){
+            sub.bottom = a.next;
+            sub = a.next;
+            if (a.next.next != null) a.next = a.next.next;
+            else a.next = null;
+        }
+        return head;
+    }
+}
+#+end_src
+
+Firstly, notice by looking in the support evalutaion code provided by GfG
+in the $printList$ function that it assumed that the provided flattened list is
+vertical, not horizontal. Therefore, this code flattens the list horizontally and
+then converts to a vertical linked list afterwards. Additionally, that it is
+necessary to implemented an efficient algortihm for sorting the horizontal provided
+list first, as the provided list is only sorted vertically. For efficient sorting
+of linked lists take a look at the [[file:sortsearch.html][Merge Sort for Linked List]] exercise first.
+
+The core of the $flatten$ method is pretty straight-forward, a while-loop that
+is performed horizontally, and a nested while loop vertically. Notice, that
+there is no need to update the current value in the neste loop as I am flattening
+every single node in the sublist of $curr$, so my stop condition is
+$while (curr.bottom != null)$. So far, it took $O(nlog(N))$ to perform the merge
+sort, additionally, the nested while loop visits every single node and
+performs an insert operation on those who are in sublists, let's take a closer
+look at the $insert$ method.
+
+$insert$ receives the a $curr$ node and one of it's sub nodes, $sub$. The $do-while$
+loop traverses the linked list horizontally keeping the adjacent $prev$ and $next$
+nodes $while(sub.data > next.data)$. When the loop finishes we know we have found
+the right position to insert $sub$. However, one must be careful assigning proper
+values to all involved nodes. The algorithm first remove $sub$ from the list
+by letting $curr.next$ point to $sub.next$, moreover, $sub$ will be flattened
+to it has no bottom node. Next, $sub$ is inserted in the horizontal linked list.
+That's pretty much it! Assuming there are $N$ nodes in the horizontal list and
+$M$ nodes on the vertical lists, than for every $m$ node it will take at most $N$
+iterations to find it's appropriate position. Hence, it will take $O(M*N)$.

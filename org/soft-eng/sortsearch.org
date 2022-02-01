@@ -1,0 +1,169 @@
+#+TITLE: Sorting and searching
+#+SUBTITLE: Software Engineering Topics
+#+AUTHOR: Daniel Guimaraes
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+#+HEADER: :results output silent :headers '("\\usepackage{tikz}")
+#+HEADER: :results output silent :headers '("\\usepackage{pgfplots}")
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../code.css"/>
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css"/>
+
+#+begin_export html
+<ul class='navbar'> 
+  <li><a href="/">Home</a></li>
+  <li><a href="/static/data-eng/index.html">Data Engineering</a></li>
+  <li><a href="/static/soft-eng/index.html">Software Engineering</a></li>
+</ul>
+#+end_export
+
+* GeeksForGeeks: [[https://practice.geeksforgeeks.org/problems/sort-a-linked-list/1][Merge Sort for Linked List]]
+#+begin_src java
+class Solution
+{
+    static Integer listSize(Node head){
+        if (head == null) return null;
+        int size = 0;
+        for (Node curr=head; curr !=null ; curr=curr.next ){
+            size+=1;
+        }
+        return size;
+    }
+    static Node merge(Node head1, Node head2){
+        Node head;
+        if (head1 == null){
+            return head2;
+        }
+        if (head2 == null){
+            return head1;
+        }
+        if (head1.data < head2.data){
+            head = head1;
+            head.next = merge(head1.next, head2);
+        } else{
+            head = head2;
+            head.next = merge(head1, head2.next);
+        }
+        return head;
+    }
+    static Node mergeSort(Node head)
+    {
+        if (head.next == null) return head;
+        // divide the linked list in half
+        Integer size = listSize(head);
+        if (size == null) return null;
+        int middlePos = (int)Math.floor(size/2);
+        Node middleNode = head;
+        for (int i=0; i<middlePos-1; i++){
+            middleNode = middleNode.next;
+        }
+        // disconnect the two linked lists
+        Node prev = middleNode;
+        middleNode = middleNode.next;
+        prev.next = null;
+        // call each half recursivelly
+        Node head1 = mergeSort(head);
+        Node head2 = mergeSort(middleNode);
+        // return the merge of the two sorted halfs
+        return merge(head1, head2);
+    }
+}
+#+end_src
+
+A well-known way of efficiently sorting a linked list is by using merge sort.
+This algorithm works by splitting a linked list in half, sorting each half, and
+then merging the two, taking into advantage that they are already sorted.
+
+The seach space in broken in half at each recursive mergeSort call, additionally
+one must also merge the two sorted lists. The merge function $M(n=n_1+n_2)$
+takes two head nodes adding up to $n$, at each merge call either $head1 > head2$
+or otherwise, in either case, the smaller head node is kept, and the merge function
+is called with the rest of the list of the smaller head node and the other list.
+Hence, there are $n$ recursive calls, each reduces $n$ by one, so we can claim
+it takes $cn$ time to run merge, so $O(n)$.
+
+This way, we can write the following recursive calls for mergeSort:
+\[
+T(n) = 2T(n/2) + cn \\
+T(n/2) = 2T(n/4) + cn/2 \\
+T(n/4) = 2T(n/8) + cn/4 \\
+\]
+
+Now adding back to $T(n)$ we have:
+\[
+T(n) = 4T(n/4) + 2n \\
+T(n) = 8T(n/8) + 3n \\
+\]
+
+Therefore we have a constant term, $8T(n/8)$ and a linear term $3n$. At each iteration
+$i$ the linear term takes $n$, however, we don't know how many iterations are
+needed to reach $n$. Well, at each iteration we are reducing the search space
+by half so we could say we want to know $i$ such that $n = 2^i$, oh that's
+$log_2(n)$.  Therefore we can say that $O(nlog(n))$.
+
+
+* LeetCode: [[https://leetcode.com/problems/largest-submatrix-with-rearrangements/][Largest Submatrix With Rearrangements - 1727]]
+   
+ #+begin_src java
+ class Solution {
+     public int largestSubmatrix(int[][] m) {
+         // the first row is not modified
+         for (int i=1; i<m.length; i++){
+             for (int j=0; j<m[0].length; j++){
+                 if (m[i][j] == 1) m[i][j] = m[i-1][j] + 1;
+             }
+         }
+         int count = 0;
+         for (int i=0; i<m.length; i++){
+             Arrays.sort(m[i]);
+             for (int j=1; j<=m[0].length; j++){
+                 count = Math.max(count, j* m[i][m[0].length - j]);
+             }
+         }
+         return count;
+     }
+ }
+ #+end_src
+
+This problem seems quite dauting at first, one of the intuitive solutions
+is to greedily consider bigger submatrixes and then go to smaller submatrixes.
+With a simple function that receives a submatrix and checks if it's filled with
+1s. The problem of this solution is that one has to generate all the possible
+submatrixes, if a $nx$ matrix is passed as input, then there are:
+  + 1 submatrix of size $nxn$
+  + 2 submatrixes of size $nx(n-1)$
+  + 2 submatrixes of size $(n-1)xn$
+  + 4 sumbatrixes of size $(n-1)x(n-1)$ ...
+
+Generally, there are $(n-r+1)*(n-c+1)$ submatrices of size $r*c$ and there are
+$n*n$ different submatrices. So clearly the search space is too big to go this
+way.
+
+The way proposed above, is to sum the values vertically first:
+
+|---+---+---+---------------+---+-----+---|
+| 1 | 0 | 0 |               | 1 |   0 | 0 |
+| 0 | 1 | 1 | $\rightarrow$ | 0 |   1 | 1 |
+| 1 | 1 | 0 |               | 1 | *2* | 0 |
+| 1 | 1 | 1 |               | 2 |   3 | 1 |
+|---+---+---+---------------+---+-----+---|
+
+This way we can indicate blocks inside the matrix, so when we read $2$ we know
+it is the case that there is a $1$ just above. As the column order doesn't matter
+and we could freely exchange them, in the same time that we have compressed
+local infomation in a single cell, we can order the rows of the right table without
+compromising the information:
+|-----+---+---+---+---------------+-----+-----+-----|
+|     |   |   |   |               | j=3 | j=2 | j=1 |
+| i=0 | 1 | 0 | 0 |               |   0 |   0 |   1 |
+| i=1 | 0 | 1 | 1 | $\rightarrow$ |   0 |   1 |   1 |
+| i=2 | 1 | 2 | 0 |               |   0 |   1 |   2 |
+| i=3 | 2 | 3 | 1 |               |   1 | *2* |   3 |
+|-----+---+---+---+---------------+-----+-----+-----|
+
+Therefore we can parse the rows in the table in the right side and claim there
+are area of size $j* m[i][m[0].length - j]$ for each cell read. For example, when
+reading the value $2$, was read in the second column, that means that there is
+another neighbor column which has area $>= 2$, therefore $2* m[3][2] = 4$.
+
+Regarding the complexity, as the input is of size $s=n_r x n_c$ then we need two
+subsequent loops of $O(s)$, therefore the complexity is $O(s)$.

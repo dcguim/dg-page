@@ -1,0 +1,109 @@
+#+TITLE: Array and string manipulation
+#+SUBTITLE: Software Engineering Topics
+#+AUTHOR: Daniel Guimaraes
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+#+HEADER: :results output silent :headers '("\\usepackage{tikz}")    
+#+HEADER: :results output silent :headers '("\\usepackage{pgfplots}")
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../code.css"/>
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css"/>
+
+#+begin_export html
+<ul class='navbar'> 
+  <li><a href="/">Home</a></li>
+  <li><a href="/static/data-eng/index.html">Data Engineering</a></li>
+  <li><a href="/static/soft-eng/index.html">Software Engineering</a></li>
+</ul>
+#+end_export
+
+
+* LeetCode: [[https://leetcode.com/problems/html-entity-parser/][HTML Entity Parser - 1410]]
+   
+#+begin_src java
+class Solution {
+    public String entityParser(String text) {
+        int begEntity = text.indexOf("&", 0);
+        int endEntity = text.indexOf(";", 0);
+        while (begEntity >= 0 && endEntity > 0) {
+            String entity = text.substring(begEntity, endEntity+1);
+            switch (entity){
+                case "&quot;":
+                    text = text.substring(0,begEntity)+ "\"" + text.substring(endEntity+1);
+                    break;
+                case "&apos;":
+                    text = text.substring(0,begEntity)+ "'" + text.substring(endEntity+1);
+                    break;  
+                case "&amp;":
+                    text = text.substring(0,begEntity)+ "&" + text.substring(endEntity+1);
+                    break;
+                case "&gt;":
+                    text = text.substring(0,begEntity)+ ">" + text.substring(endEntity+1);
+                    break;
+                case "&lt;":
+                    text = text.substring(0,begEntity)+ "<" + text.substring(endEntity+1);
+                    break;
+                case "&frasl;":
+                    text = text.substring(0,begEntity)+ "/" + text.substring(endEntity+1);
+                    break;
+                default:
+                    break;
+                }
+            begEntity = text.indexOf("&", begEntity+1);
+            endEntity = text.indexOf(";", begEntity+1);
+        }
+        return text;
+    }
+}
+#+end_src
+
+Say that the string is of length $n$, and there are $p$ HTML entities ($p=N_{semicolons}=N_{amperstands}$)
+in the string. The while loop will iterate $p$ times, everytime it will run a 
+$O(n)$ $indexOf()$ method which iterates through the string checking
+a characters one by one, and the $substring$ method taking also $O(n)$ for 
+creating a copy of the original $text$ string. Therefore the complexity is $O(n)$
+with a $2p$ constant.
+
+* GeeksForGeeks: [[https://practice.geeksforgeeks.org/problems/stock-buy-and-sell-1587115621/1/][Stock buy and sell]]
+#+begin_src java
+class Solution{
+    ArrayList<ArrayList<Integer>> stockBuySell(int A[], int n) {
+        ArrayList<ArrayList<Integer>> result = new ArrayList<ArrayList<Integer>>((int)Math.floor(n/2));
+        int buyOn = -1;
+        for(int i=0; i<A.length-1; i++){
+            // look one day ahead and calculate the price difference
+            int priceDiff = A[i+1] - A[i];
+            // if the price is going up, buy on day i
+            if (buyOn == -1 && priceDiff > 0){
+                buyOn = i;
+            }
+            // if the stock was bought, and sell today if it is going down tomorrow
+            if (buyOn >= 0 && (i+1 == A.length-1 || priceDiff < 0)){
+                final int buyDay = buyOn;
+                int sellOn = i;
+                // sell the stock if it is the last day
+                if (i+1 == A.length-1 && priceDiff > 0) sellOn +=1;
+                final int sellDay = sellOn;
+                // add the pair to the reusults array
+                result.add(new ArrayList<Integer>(2){{
+                    add(buyDay);
+                    add(sellDay);
+                }});
+                buyOn = -1;
+            }
+        }
+        return result;
+    }
+}
+#+end_src
+As we can look into the future prices, we are simply checking if the price is 
+going up in the next day and buying, and as soon as the prices goes down we sell.
+Notice that we are iterating for each day but the last, and we have to close a
+buying position on the last day hence the check if $i+1 == A.length-1$. 
+The complexity is clearly $O(n)$, and it seems hard to make if faster as we have
+to check each individual day decide to buy/sell, and ignoring a few days would
+potentially reduce profits.
+
+This is not a hard question per se, besides the complicated if statements there
+is not much else challenging. The implementation, however, shows interesting 
+aspects of ArrayLists, for instance, the on-the-fly creation of ArrayLists within
+ArrayLists.

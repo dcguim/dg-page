@@ -1,0 +1,107 @@
+#+TITLE: Bitwise manipulation
+#+SUBTITLE: Software Engineering Topics
+#+AUTHOR: Daniel Guimaraes
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+#+HEADER: :results output silent :headers '("\\usepackage{tikz}")
+#+HEADER: :results output silent :headers '("\\usepackage{pgfplots}")
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../code.css"/>
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css"/>
+
+#+begin_export html
+<ul class='navbar'> 
+  <li><a href="/">Home</a></li>
+  <li><a href="/static/data-eng/index.html">Data Engineering</a></li>
+  <li><a href="/static/soft-eng/index.html">Software Engineering</a></li>
+</ul>
+#+end_export
+
+* GeeksforGeeks: [[https://practice.geeksforgeeks.org/problems/count-total-set-bits/0][Count total set bits]]
+ #+begin_src java
+ class Solution{
+     //Function to return sum of count of set bits in the integers from 1 to l.
+     public static int countSetBits(int l){
+         int count = 0;
+         for (int i = 1; i <= l; i++){
+             int k = i;
+             while (k>0) { 
+                 count += k & 1;
+                 k >>=1;
+             }
+         }
+         return count;    
+     }
+ }
+ #+end_src
+
+ This is implementation runs in reasonable $O(nlog(n))$ time, where $n$ is the
+ number of integers from $1$ to the last number $l$. Notice, it takes $log_2(k)+1$
+ bits to represent $k \in \{1,l\}$, as the while loop right-shifts one bit at
+ every single iteration.
+
+ Let's look at a more analytical implementation.
+ #+begin_src java
+ class Solution {
+       public static int countSetBits(int n){
+	   if (n == 0) return 0;
+	   int lmb = (int)Math.floor(Math.log(n)/Math.log(2));
+	   // if n is a s sequence of ones, like 3, 7, 15, and 31.
+	   // there is an analytical direct solution.
+	   int nextSeqOnesNumberCount = lmb*(int)Math.pow(2, lmb-1);
+	   // count the number of ones in the leftmost bit position
+	   // vertically until it becomes zero.
+	   int lmbCount = n - ((1<<lmb) -1);
+	   return nextSeqOnesNumberCount + lmbCount + countSetBits(n - (1<<lmb));
+       }
+   }
+ #+end_src
+ Firstly, notice $nextSeqOnesNumberCount$ counts the amount of bits
+ from the next number bellow $n$ which is composed by a sequence of up bits like
+ $3,7,15,31$ until $0$. When $n=3$ and $lmb=1$, there are $4$ bits until $0$ :
+ $$11, 10, 01$$
+
+ When $n \in (4-7)$ and $lmb=2$, notice that the next lower number with only
+ ones is $n=3$, and therefore $nextSeqOnesNumberCount = 4$. But how did we get
+ to this formula?
+
+ The number of bits for each position will flip vertically in a specific frequence
+ which doubles in time as the $pos \rightarrow 0$. If $n=9$ we are looking at $7$,
+ $lmb=3$, we have three patterns of size $2^2$, one of those patterns are the
+ sum of bits when $n=3$, there is also another such 4-bits pattern is just above it,
+ at columns $pos_0$ and $pos_1$ in the quadrant $n=7$. Interestingly, we have the
+ at this quadrant the same amount of bits in $pos_2$. The same happens when we
+ have four bits, we have four bigger patterns of size $8$. Look at the table
+ bellow for easier visualization:
+
+ |      | pos_3 | pos_2 | pos_1 | pos_0 |
+ |------+-------+-------+-------+-------|
+ | n=15 |     1 |     1 |     1 |     1 |
+ |      |     1 |     1 |     1 |     0 |
+ |      |     1 |     1 |     0 |     1 |
+ |      |     1 |     1 |     0 |     0 |
+ |      |     1 |     0 |     1 |     1 |
+ |      |     1 |     0 |     1 |     0 |
+ |      |     1 |     0 |     0 |     1 |
+ |      |     1 |     0 |     0 |     0 |
+ |------+-------+-------+-------+-------|
+ | n=7  |       |     1 |     1 |     1 |
+ |      |       |     1 |     1 |     0 |
+ |      |       |     1 |     0 |     1 |
+ |      |       |     1 |     0 |     0 |
+ |------+-------+-------+-------+-------|
+ | n=3  |       |       |     1 |     1 |
+ |      |       |       |     1 |     0 |
+ |      |       |       |     0 |     1 |
+ |      |       |       |     0 |     0 |
+ |------+-------+-------+-------+-------|
+
+ Therefore this solution consists of counting, the amount of bits in the leftmost
+ column of $n$, in case of $n=14$,  we have $14 - ((1<<3) -1) = 14 - 7 = 7$. Plus,
+ the $nextSeqOnesNumberCount$ represented by all the bits on the quadrants $n=7$
+ and $n=3$ plus the counts when $n=6$, i.e. we take the leftmost bit out of $14$
+ as we already have counted them all in $lmbCount$.
+
+ This is an $O(log(n))$ solution as we will recurse for every single bit in $n$,
+ and $n$ has $log_2(n) + 1$ bits. At every recursive call, we eliminate, the
+ leftmost bit of $n$ and transform an $n$-sized problem into a
+ $(n - (1<<lmb))$-sized problem.
