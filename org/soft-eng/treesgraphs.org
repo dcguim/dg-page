@@ -1,0 +1,183 @@
+#+TITLE: Trees and graphs
+#+SUBTITLE: Software Engineering Topics
+#+AUTHOR: Daniel Guimaraes
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+#+LaTeX_HEADER: \usepackage{tikz} 
+#+LaTeX_HEADER: \usetikzlibrary{graphs, arrows.meta}
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../code.css"/>
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css"/>
+
+#+begin_export html
+<ul class='navbar'> 
+  <li><a href="/">Home</a></li>
+  <li><a href="/static/data-eng/index.html">Data Engineering</a></li>
+  <li><a href="/static/soft-eng/index.html">Software Engineering</a></li>
+</ul>
+#+end_export
+
+
+* LeetCode: [[https://leetcode.com/problems/vertical-order-traversal-of-a-binary-tree][Vertical Order Traversal of a Binary Tree - 987]]
+#+begin_src java
+  /**
+   ,* Definition for a binary tree node.
+   ,* public class TreeNode {
+   ,*     int val;
+   ,*     TreeNode left;
+   ,*     TreeNode right;
+   ,*     TreeNode() {}
+   ,*     TreeNode(int val) { this.val = val; }
+   ,*     TreeNode(int val, TreeNode left, TreeNode right) {
+   ,*         this.val = val;
+   ,*         this.left = left;
+   ,*         this.right = right;
+   ,*     }
+   ,* }
+   ,*/
+  class Solution {
+    
+      // vertical order traversal answer
+      private List<List<Integer>> vot;
+    
+      // maps the node to it's row
+      private HashMap<Integer, Integer> rows;
+    
+      private Integer curRow = 0;
+    
+      private Integer curCol = 0;
+    
+      public List<List<Integer>> verticalTraversal(TreeNode root) {
+	  vot = new ArrayList<List<Integer>>();
+	  vot.add(new ArrayList<Integer>(){{
+	      add(root.val);
+	  }});
+	  // identify the row of each node
+	  rows = new HashMap<Integer, Integer>();
+	  rows.put(root.val, 0);
+	  dfs(root);
+	  return vot;
+      }
+    
+      public int findPosInCol(int column, int row, int val){
+	  List<Integer> colList = vot.get(column);
+	  int pos = -1;
+  e        // iterate throughout the column
+	  for (int i = colList.size()-1; i >= 0; --i){
+	      int vi = colList.get(i);
+	      if (row < rows.get(vi) || (row == rows.get(vi) && val < vi)){
+		  pos = i;
+	      }
+	  }
+	  return (pos >= 0) ? pos : colList.size();
+      }
+    
+      // row and col are always >= 0
+      public void dfs(TreeNode root){
+	  if (root.right == null && root.left == null) return;
+	  if (root.left != null){
+	      // determine if the list to acommodate the left node exist
+	      if (curCol > 0){
+		  // find right position to place left node in list
+		  int pos = findPosInCol(curCol-1, curRow+1, root.left.val);
+		  vot.get(curCol-1).add(pos, root.left.val);
+	      }
+	      else {
+		  vot.add(curCol, new ArrayList<Integer>(){{
+		      add(root.left.val);
+		  }});
+		  curCol += 1;
+	      }
+	      // add left node to map
+	      rows.put(root.left.val, curRow+1);
+	  }
+	  if (root.right != null){
+	      // determine if the list to acommodate the right node exist
+	      if ((vot.size() - curCol - 1) > 0){
+		  int pos = findPosInCol(curCol+1, curRow+1, root.right.val);
+		  vot.get(curCol+1).add(pos, root.right.val);
+	      }
+
+	      else {
+		  vot.add(curCol+1, new ArrayList<Integer>(){{
+		      add(root.right.val);
+		  }});
+	      }
+	      // add right node to map
+	      rows.put(root.right.val, curRow+1);
+	  }
+	  if (root.left != null){
+	      curRow += 1;
+	      curCol -= 1;
+	      dfs(root.left);
+	      curRow -= 1;
+	      curCol += 1;
+	  }
+	  if (root.right != null){
+	      curRow += 1;
+	      curCol += 1;
+	      dfs(root.right);
+	      curRow -= 1;
+	      curCol -= 1;
+	  }
+	  return;
+      }
+  }
+#+end_src
+
+The first solution was to use depth-first search to traverse the tree and build
+the vertical order traversal list. Depth- as opposed to breadth- first search
+was selected as we keep the current row and column position being added in the
+answer list. Imagine we are traversing the following tree:
+
+#+begin_src latex :exports results :results raw file :file simpletree.png :output-dir ../img
+  \resizebox{0.4\textwidth}{!}{%
+    \begin{tikzpicture}[scale=1,nodes={draw, circle}, ->]
+      \node{0}
+      child { node {1}
+	child { node {3} }
+	child { node {5}
+	 child { node {7} }
+	 child { node {8} }
+         }
+      }
+      child[missing]
+      child { node {2}
+	child { node {4} }
+	child { node {6} }
+      };
+   \end{tikzpicture}
+       }%
+#+end_src
+
+#+RESULTS:
+[[file:../img/simpletree.png]]
+
+
+If we are traversing in a BFS fashion, we would traverse the first row $R_1$, nodes
+1 and 2, then the second, traversing 3,5,4 and 6 and thirdly 7 and 8. This way,
+we would need first to traverse the children of 1 store them in the list $R_2$,
+then store the descendants of node 2 in $R_2$, in order to finally traverse all
+of the descendents of nodes in the second row, 7 and 8. Now, imagine how hard
+it would be to keep track of all current rows and columns when given the list
+$R_2$, how would we have the infomation that node 5 is actually the right node
+of 1 and therefore the column position of 1 must be incremented by one, or would
+we need to hard-wire the position of each node in the tree just to reupdate it
+every time a new node is created and the relative position of all other nodes are
+changed? If we traverse in a DFS fashion, we find ourselves in node $n_{i,j}$ and can
+directly traverse it's descendents $n_{i+1,j-1}$ and $n_{i+1,j+1}$ assigning the
+relative row and column thereby making our lifes easier when adding values to
+the vertical order traversal list.
+
+This list has one list per column from left to right, however, when two nodes
+are in the same row and column, like $4$ and $5$ they must be sorted by their
+values, independent of the order they were added to the solution list. Therefore,
+when adding a node $n$ to index $c_i$ of the list one must know to which
+row each node in $c_i$ belongs to, so that if they happend to be in the same
+row as $n$ they must appear in an ascendent order.
+
+In every iteration, one node will be visited, $root$, and it's two children will
+be added to the list, adding an element to the list can take at badly designed
+binary trees, $n/2$ (imagine a tree which each of the root's children have zigzaged
+left and right descendents), therefore it takes at most $O(n)$ place an element
+in the answer list. Hence it will take $O(N^2)$ or $O(E.N)$ as in binary trees
+the number of edges $E=N-1$.

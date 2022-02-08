@@ -4,6 +4,7 @@
 #+OPTIONS: toc:nil
 #+OPTIONS: num:nil
 #+LaTeX_HEADER: \usepackage{tikz}
+#+LATeX_HEADER: \usepackage{pgfplots}
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../code.css"/>
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css"/>
 #+begin_export html
@@ -172,14 +173,12 @@
     That means, for a particular constant $k$ and all values of $n\ge n_0$
     our time function $f(n)$ is above the lower bounds function $l(n)$.
 
+#+ATTR_LATEX: :scale 2
 #+begin_src latex :exports results :results raw file :file ex.png :output-dir ../img/
-  \begin{tikzpicture}
-    \draw node[circle, draw] (a) {$a$}
-      node[circle, draw, right of = a] (b) {$b$}
-      node[circle, draw, below of = a] (c) {$c$}
-      node[circle, draw, below of = b] (d) {$d$};
+  \begin{tikzpicture}[scale=1.5]
+  \begin{axis}[xmin=0,xmax=5,ymax=300, samples=1500, legend pos= south east]
+    \addplot[blue] (x,13*x*x + 2*x + 48); \addlegendentry{\(13x^2 + 2x + 48\)}
+    \addplot[red] (x,63*x*x); \addlegendentry{\(64x^2\)}
+  \end{axis}
   \end{tikzpicture}
 #+end_src
-
-#+RESULTS:
-[[file:../img/ex.png]]

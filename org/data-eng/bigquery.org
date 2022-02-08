@@ -1,0 +1,186 @@
+#+TITLE: knowledge repo
+#+SUBTITLE: Data Engineering Topics
+#+AUTHOR: Daniel Guimaraes
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+#+HEADER: :results output silent :headers '("\\usepackage{tikz}")
+#+HEADER: :results output silent :headers '("\\usepackage{pgfplots}")
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../code.css"/>
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css"/>
+#+begin_export html
+<ul class='navbar'> 
+  <li><a href="/">Home</a></li>
+  <li><a href="/static/data-eng/index.html">Data Engineering</a></li>
+  <li><a href="/static/soft-eng/index.html">Software Engineering</a></li>
+</ul>
+#+end_export
+
+
+* Background
+  In this tutorial I would like to use [[https://www.kaggle.com/hhenry/finance-factoring-ibm-late-payment-histories][account receivables data]] to predict when
+  invoices will be paid using BigQuery and BigQuery ML.
+
+  Account receivables (AR) is essentially unpaid invoices owned by clients to one
+  company after the delivery of goods. Often companys can sell account
+  receivables, as it is an asset, to intermidiary agents or factors. Factoring
+  is the process of purchasing account receivables from companies at a
+  discount price.
+
+  One of the major challenges of factoring is determining when invoices will be
+  paid by debtor company, as they need to understand the associated risk of
+  purchasing account receivables.
+  
+* Loading AR data into BigQuery
+**  Adding the CSV to BigQuery
+   As the AR data is in the form of a CSV, we have to first load this CSV into
+   a [[https://cloud.google.com/storage/docs/json_api/v1/buckets][Bucket]] in Google Cloud Storage. The [[https://cloud.google.com/storage/docs/gsutil_install][gsutil]] tool allow one to interact
+   with diverse services from GCP from the convenience of the terminal. It it is
+   possible that one might need to authenticate oneself in `gcloud ` and setting
+   a project to be able to fully use the `gsutil` utility. If you are having
+   issues, the `gcloud init` command makes it easy to authenticate through
+   the browser. Bellow we can use the command [[https://cloud.google.com/storage/docs/gsutil/commands/mb][gsutil mb]] to make a bucket:
+   
+   #+begin_export shell
+   gsutil mb -c standard -l europe-west3 gs://accreceivables-bucket
+   #+end_export
+
+   The name of the bucket name /"accreceivables-bucket"/ must be globally unique,
+   therefore, be creative when naming the bucket. The parameters "-c" and "-l"
+   sets the storage class and the region. I am leaving the standard class and
+   setting the region to the closest I am at the moment. Run the following command
+   to send the the data downloaded from Kaggle to your bucket:
+   
+   #+begin_src shell
+   gsutil cp ~/Downloads/WA_Fn-UseC_-Accounts-Receivable.csv.xls  gs://accreceivables-bucket
+   #+end_src
+
+   In GCP, projects contain datasets which contain tables, therefore one must
+   create a dataset within a project. To create a dataset in BigQuery, use the
+   [[https://cloud.google.com/bigquery/docs/bq-command-line-tool][bq]] tool:
+
+   #+begin_src shell
+   bq --location=europe-west3 mk --dataset --default_table_expiration 7200 ardataset
+   #+end_src
+
+   I am setting this dataset to live only for two hours, which should be
+   sufficient for this tutorial. Inside a dataset, we need to create a table
+   to do this we need a table name, and a schema mapping the fields in our
+   AR data to datatypes:
+
+   #+begin_src shell
+    bq mk --table --expiration 7200 ardataset.ardata\
+	    countryCode:INTEGER,customerID:STRING,PaperlessDate:STRING,\
+	    invoiceNumber:INTEGER,InvoiceDate:STRING,DueDate:STRING,\
+	    InvoiceAmount:FLOAT,Disputed:STRING,SettledDate:STRING,\
+	    PaperlessBill:STRING,DaysToSettle:INTEGER,DaysLate:INTEGER
+   #+end_src
+   The mapping above should do. Note that, the backslash is simply for
+   line-breaking this long command, and must be removed when executing.
+   The last step is to load the data in Google Cloud Storage Bucket to the
+   newly created table.
+
+   #+begin_src shell
+   bq load --skip_leading_rows=1 --source_format=CSV ardataset.ardata \
+	    gs://accreceivables-bucket/WA_Fn-UseC_-Accounts-Receivable.csv.xls
+   #+end_src
+   We are telling $bq$ to ignore the first row as we have the column names, and
+   we don't want BigQuery to go and try to parse it as a row. Now we can directly
+   query our AR data.
+   
+** Preprocessing the data to build an ML model
+   In our case, we would like to predict the amount of days the debtor company
+   took to settle the invoice given historical data. In each row of this data
+   contains an invoice entry, therefore there could be multiple entries for the
+   same customer. We don't have necessarily to group by customer to train the
+   model independent of the customer id, we can train using multiple entries from
+   the same customer. Let's take a look at a small sample of the data:
+   #+begin_src shell
+   bq query --nouse_legacy_sql
+   'SELECT \
+      * \
+    FROM \
+      `<YOUR-PROJECT-ID>.ardataset.ardata` LIMIT 5;'
+   #+end_src
+   
+   The following tables should be returned:
+
+   + countryCode
+   + customerID
+   + PaperlessDate
+   + invoiceNumber
+   + InvoiceDate
+   + DueDate
+   + InvoiceAmount
+   + Disputed
+   + SettledDate
+   + PaperlessBill
+   + DaysToSettle
+   + DaysLate
+     
+   There are several features and we could potentially play with different
+   combination of those features yield a the best model, but for the moment
+   we would like to focus more on using SQL to build a model than to do any
+   model hunting. 
+
+   A few house-keeping rules, if we are trying to create somewhat realistic
+   $DaysLate$ predictions. When we have receive and unseen new invoice entry
+   and are trying to predict when will this customer pay, we cannot already
+   know upfront the days it will take for this customer to settle, nor can we
+   know the settled date. We also don't want to uniquely identify each row
+   with the $invoiceNumber$ column as the model would be tempted to hardcoding
+   it directly to our target column. I also honestly have no idea what is the
+   meaning of $PaperlessDate$ as both paper and electronic invoices contain
+   this field, therefore it is an undetermined date which will be left out for
+   this tutorial.
+
+   Therefore we should create models with the following features:
+   
+   + countryCode
+   + customerID
+   + InvoiceDate
+   + DueDate
+   + InvoiceAmount
+   + Disputed
+   + PaperlessBill
+   
+   There are two date fields which are stored as strings in our database,
+   $InvoiceDate$ and $DueDate$, to parse them as timestamps we could run the
+   following command:
+   #+begin_src shell
+   bq query --nouse_legacy_sql
+   'SELECT  
+     PARSE_TIMESTAMP("%m/%d/%Y", InvoiceDate) AS invoiceDate
+   FROM
+     `<YOUR-PROJECT-ID>.ardataset.ardata` LIMIT 5;' 
+   #+end_src
+   
+   Another way to avoid confusion, making it easier for the model to process
+   the data is to change binary categorical variables into numeric ones. Let's
+   also create a $paperlessBill$ column which assign 0 if the invoice was sent
+   electronically or 1 otherwise:
+   
+   #+begin_src shell
+   bq query --nouse_legacy_sql
+   'SELECT 
+     *,  CASE PaperlessBill WHEN "Paper" THEN 1 WHEN "Eletronic" THEN 0  END AS paperlessBill 
+   FROM
+     `<YOUR-PROJECT-ID>.ardataset.ardata` LIMIT 5;'
+   #+end_src
+
+   Similarly, we could do the same to the $Disputed$ variable, which indicates
+   if the invoice was or not disputed after sending it to the debtor.
+
+   Now, let's generate the table we could use to train the model.
+
+   #+begin_src shell
+     bq query --nouse_legacy_sql
+     'SELECT 
+       countryCode, customerId, 
+       PARSE_TIMESTAMP("%m/%d/%Y", InvoiceDate) AS invoiceDate, 
+       PARSE_TIMESTAMP("%m/%d/%Y", DueDate) AS dueDate,
+       InvoiceAmount,
+       CASE Disputed WHEN "Yes" THEN 1 WHEN "No" THEN 0 END AS disputed,
+       CASE PaperlessBill WHEN "Paper" THEN 1 WHEN "Eletronic" THEN 0 END AS paperlessBill
+     FROM
+       `qwiklabs-gcp-03-76e0a405b80e.ardataset.ardata` LIMIT 5;'
+   #+end_src

@@ -1,0 +1,160 @@
+#+TITLE: Configuring Kafka for Production
+#+SUBTITLE: Data Engineering Topics
+#+AUTHOR: Daniel Guimaraes
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../code.css"/>
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css"/>
+
+#+begin_export html
+<ul class='navbar'> 
+  <li><a href="/">Home</a></li>
+  <li><a href="/static/data-eng/index.html">Data Engineering</a></li>
+  <li><a href="/static/soft-eng/index.html">Software Engineering</a></li>
+</ul>
+#+end_export
+
+* Kafka Broker
+This page is responsible for listing the aspects or characteristics of the Kafka
+broker that have to be configured as well as providing heuristics, metrics,
+and tests that have to be performed when configuring the Kafka for production. 
+This post should inspire one to reflect about it's own business needs, as well as
+inform one about possible performance trade-offs. The purpose here quite buntly
+is to enable one to ask the right questions without having to read a book and to
+provide blog post references.
+
+** Delivery Semantics
+The first point I would like to touch, is whether your organization tolerate
+missing data or duplicate data in the Kafka processing. Not tolerating neither
+of those, might also impact performance, therefore, it is important to define
+if data consistency is given higher priority than cluster performance.
+Missing data is undesireable for obvious reasons, however, duplicates are sometimes
+tolerated. In order to prevent duplicates, one must ensure record's keys exist, as they
+are used to determine a record's assigned partition. In Kafka, it is very hard
+to ensure that records are not duplicated across partitions. Therefore, if you
+expect unique messages to exist in your cluster at any point in time, consider
+adding keys to your records.
+
+In a gist, there are three kinds of delivery semantics, _at-least-once_,
+_at-most-once_, and _exactly-once_, more [[https://www.confluent.io/blog/exactly-once-semantics-are-possible-heres-how-apache-kafka-does-it/][info]].
+
+  + _at-least-once_ assures that the producer and the Kafka broker exchange
+    _ acknowledgments_ _(acks)_ to assure that the data sent arrived at the broker.
+  + _at-most-once_ don't make use of acks, and therefore data can be lost.
+  + _exaclty-once_ assures that the data sent by a producer arrives the broker 
+    together with a sequence number which is persisted and therefore can be
+    deduplicated if already inserted. To configure the exactly-once semantics set
+    $enable.idempotence=true$.
+
+Again, that this configuration is only on the partition scope, which means it
+doesn't guarantee deduplication across partitions. In order to have multiple
+partitions and exactly-once semantics, one must assure that the same message is
+sent to the same partition. There are two ways of doing this:
+  1. either by setting a key to the messages, as messages with the same keys
+     are sent to the same partition, or
+  2. implementing a custom $Partitioner$ that assures that the same messages
+     are sent to the same partition. For more information on custom partitioners,
+      please consult Chapter 3 page 60 of [[https://www.confluent.io/resources/kafka-the-definitive-guide/][Kafka - The Definite Guide Book]].
+
+If one is using Kafka to deal with both structured and non-structured data, i.e.
+some of the data have keys and some don't. One delivery semantics to
+consider is the _at-least-once_ (ack=1), as ensures to the producer that the
+message was committed, and potentially replicated to the other replicas, providing
+reliability for produced messages. As commited messages will not be lost as long
+as one replica exist.
+
+** Number of partitions
+The partitions are the unit of parallelism in Kafka, which means the higher the
+partition number the higher the throughput of Kafka. Therefore one must set it's
+expectations, in terms of, how many bytes of data per second does your brokers
+aim to process. Another factor to consider, is that partition size per topic
+should be set for the future and not the current need, as changing the partition
+size of a production Kafka cluster is not a trivial task.
+
+A rough formula for picking the number of partitions is to measure the throughput
+that you can achieve on a single partition for production (call it $p$) and
+consumption (call it $c$). Let’s say your target throughput is $t$. Then you
+need to have at least $max(t/p, t/c)$ partitions (more [[https://www.confluent.io/blog/how-choose-number-topics-partitions-kafka-cluster/?_ga=2.196335529.487723948.1629789818-1605654811.1628586731][info]]). Hence, the number
+of bytes per second produced and consumed from kafka-powered applications on a
+single topic broker Kafka must be measured. The throughput to produce
+to topic may vary depending on the complexity of the message being produced,
+therefore one must take samples from different processes,  $p_1$, $p_2$, ... $p_n$
+as well as the throughput to consume $c_1$, $c_2$, .. $c_n$. Since producers are
+typically much faster than consumers, it is usually safe to skip this and
+estimate only the number of partitions as t/min($c1$, $c2$, ... $c_n$). Notice
+that when estimating $c_i$ 's, one should look at the peaks of the bytes $X$ time
+graphs, we would like to know what is the maximum throughput the consumers
+can yield when they are working at their limit. For more info consult
+Chapter 2 page 25 of [[https://www.confluent.io/resources/kafka-the-definitive-guide/][Kafka - The Definite Guide Book]].
+
+** Number of replicas
+As a rule of thumb, three in-sync replicas in different physical machines seem
+to provide, in general, reasonable durability, and tolerance to failure even for
+big Kafka clusters. Therefore, one could consider the following configuration:
+\[
+replication.factor=3 \\
+default.replication.factor=3 \\
+min.insync.replicas=3
+\]
+
+The selection of the number of in-sync replicas determines the number of replicas
+that must contain the message produced by the producer before the message is
+considered committed and the acknowledgement is sent back to the producer while
+enabling consumers to read these messages. By constraining the 3 brokers to be
+in-sync before consuming messages, ensures availability at the cost of performance,
+and prevents the undesirable situation where data is produced and consumed, only
+to disappear when an unclean election occurs. 
+
+** Unclean Leader election
+When brokers get out of sync, that means, when the broker with the leader
+partition continues to receive data from producers while the other follower
+brokers replicas lag behind, followed by the unavailability of this leader
+broker, the Kafka cluster may get to unstable states. Especially when out-of-sync
+broker replicas become leaders, and ignore the missed messages. To prevent this
+edge-case, assuming that data quality and consistency are prioritized over
+performance issues, the configuration $unclear.leader.election=false$ must be
+applied, preventing out-of-sync brokers to become leaders. For more info consult
+Chapter 6 page 119 of [[https://www.confluent.io/resources/kafka-the-definitive-guide/][Kafka - The Definite Guide Book]].
+
+* Producers and Consumers
+The clients of Kafka have to be configured in the application that creates
+those clients, not in the Kafka broker configuration. If your webapp is spawning
+producers and consumers, then it is responsible configure the properties of
+those producers.
+
+* Producers
+** Acknowledgements and retries
+Whenever $enable.idempotence=true$ is configured, there is no need to also
+configure acknowledgements or retries, as these settings work against each other.
+
+** Compression Type
+Disk space requirements for using Kafka can quickly get unwieldy, especially
+when using replicas. To calculate disk requirements simply multiply average
+message size times messages per day times retention period times replication
+factor. Therefore, although compression might come with a slight delay in message
+dispatch it can significantly reduce disk space utilization in the brokers, and
+reduce network bandwidth usage. 
+
+There are a few compression types allowed in Kafka such as gzip, snappy, lz4, and
+zstd. There are a few characteristics of compression methods that are relevant
+when choosing a particular one, IBM has an interesting article about the matter,
+please check the [[https://developer.ibm.com/articles/benefits-compression-kafka-messaging/*supported-compression-types-in-kafka][compresion types table]] for evaluating the tradeoffs.
+
+* Consumers
+
+Regarding consumers, often there are properties relating to how consumers commit
+offsets, that might vary from different Kafka use cases.
+
+** Offset Commit configurations
+Whenever consumers cannot find committed offsets for a topic and partition of
+interest in the broker, it should start from the beginning of the partition, or
+the earliest offset, using $auto.offset.reset=earliest$. This config, in the case
+where offsets should be committed but weren't, will create duplicates, however,
+it won't miss consuming any data. This assumes data loss is a bigger problem
+than duplicated messages.
+
+Unless there is a custom consumer implemented, which manually commits the offsets,
+$enable.auto.commit=true$ should always be set. The interval in which these offsets
+will be committed is controlled with $auto.com mit.interval.ms$, which is set to
+a default of 5 seconds. This should be reasonable, however, if one notice an
+increase in duplicate messages, one might want to reduce this interval.

@@ -15,6 +15,34 @@
   <li><a href="/static/soft-eng/index.html">Software Engineering</a></li>
 </ul>
 #+end_export
+* LeetCode: [[https://leetcode.com/problems/maximum-xor-for-each-query/][Maximum XOR for Each Query - 1929]]
+#+begin_src java
+class Solution {
+    public int[] getMaximumXor(int[] nums, int maximumBit) {
+        int n = nums.length;
+        int[] result = new int[n];
+        int max = (int)Math.pow(2, maximumBit) - 1;
+        int query = 0;
+        for (int i = n-1; i>=0; i--){
+            query ^= nums[n-1-i];
+            result[i] = max^query;
+        }
+        return result;
+    }
+}
+#+end_src
+
+This problem is all about realizing that the optimal bit value of $111...$
+$maximumBit$ times can always be reached. This value will always be the value
+described as $max$ above. If we pick the example in the description:
+$[2,3,4,7]$
+
+Then the last query, we want to find $k$, such that $2 XOR k = max$. If we put
+some thought into it, we can notice that $2 XOR max = k$ as $XOR$ is just flipping
+the 1s into 0s and the 0s into 1s. That's it, now we just need to loop from the
+first number until the last and $XOR$-ing them together in the $query$ variable
+and using the logic mentioned above to find $k$. This operation will take $O(n)$
+time and space.
 
 * GeeksforGeeks: [[https://practice.geeksforgeeks.org/problems/count-total-set-bits/0][Count total set bits]]
  #+begin_src java

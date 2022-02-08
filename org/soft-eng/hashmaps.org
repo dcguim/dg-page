@@ -1,0 +1,93 @@
+#+TITLE: Hashmaps
+#+SUBTITLE: Software Engineering Topics
+#+AUTHOR: Daniel Guimaraes
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+#+HEADER: :results output silent :headers '("\\usepackage{tikz}")    
+#+HEADER: :results output silent :headers '("\\usepackage{pgfplots}")
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../code.css"/>
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css"/>
+
+#+begin_export html
+<ul class='navbar'> 
+  <li><a href="/">Home</a></li>
+  <li><a href="/static/data-eng/index.html">Data Engineering</a></li>
+  <li><a href="/static/soft-eng/index.html">Software Engineering</a></li>
+</ul>
+#+end_export
+
+
+* LeetCode: [[https://leetcode.com/problems/map-sum-pairs/][Map Sum Pairs - 677]]
+#+begin_src java
+  class MapSum {
+
+      HashMap<String, Integer> map = null;
+      public MapSum() {
+	  map = new HashMap<String, Integer>();
+      }
+
+      public void insert(String key, int val) {
+	  map.put(key, val);
+      }
+
+      public int sum(String prefix) {
+	  int sum = 0;
+	  for (String k : map.keySet()){
+	      if (k.startsWith(prefix)) sum += map.get(k);
+	  }
+	  return sum;
+      }
+  }
+#+end_src
+
+Although classified as a medium difficulty problem, this is a fairly trivial.
+We have therefore a good excuse to talk about the complexity of $map.put$ and
+$map.get$ operations. HashMaps uses arrays and LinkedLists internally for
+storing key-value pairs. The arrays represent the buckets
+which, in turn, store to LinkedLists which store the key-value pairs:
+
+ 0) $\rightarrow (key1, value1) \rightarrow (key3, value3) \rightarrow (key6, value6)$
+ 1) $\rightarrow (key4, value4)$
+ 2) $\rightarrow (key2, value2) \rightarrow(key5, value5)$
+ 3) 
+ 4) $\rightarrow (key7, value7)$
+
+The buckets $0..4$ store linked lists which store pairs. So in order to $put(k,v)$ a
+pair first the the key is hashed $k_h$, i.e. a number is generated deterministically
+give the key, that represents this very key. The hash can be arbitrarily large,
+so normally one does $k_h\%5$ to obtain the $k_h$'s assigned bucket. Then, the associated
+LinkedList will be traversed, if there is a key equals to $k$ the value $v$ will be
+overwritten, if not, a new node will be created in the LinkedList. For the $get(k)$
+operation is the same, except the previous state of the HashMap is preserved.
+
+Although, it can take $O(n)$ for poorly implemented hash-functions, (i.e. it assign multiple
+keys to the same bucket, instead of distributing it) these operations are said to
+run in amortized (average-case) constant time.
+
+
+* LeetCode: [[https://leetcode.com/problems/make-sum-divisible-by-p/][Make Sum Divisible by P - 1590]]
+#+begin_src java
+class Solution {
+    public int minSubarray(int[] nums, int p) {
+        // find the remainder to reach a multiple of p
+        // target = sum(nums[0..i]) % p
+        int n = nums.length, cursum = 0, target = 0, minlen = n;
+        for(int i=0; i<n; i++) target = (target + nums[i]) % p;
+        // the amount that must be removed from nums
+        if (target == 0) return 0;
+        HashMap<Integer, Integer> hist = new HashMap<Integer, Integer>(n);
+        // find the interval [j,i] s.t. sum(nums[j..i])%p = target
+        // cursum - prefix = target : sum(arr[0..i])%p - sum(arr[0..j])%p = target 
+        hist.put(0,-1);
+        for (int i = 0; i<n; i++){
+            cursum = (cursum + nums[i]) % p;
+            hist.put(cursum, i);
+            // sum(arr[0..j])%p = (currsum - target) %p
+            int prefix = (cursum - target + p) % p;            
+            // look for the minimum value that satisfy
+            minlen = Math.min(minlen, i - hist.getOrDefault(prefix, -n));    
+        }
+        return (minlen < n) ? minlen : -1;
+    }
+}
+#+end_src

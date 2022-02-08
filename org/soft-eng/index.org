@@ -21,19 +21,9 @@
 - [[file:arraystring.html][Arrays and strings]]
 - [[file:stackqueue.html][Stacks and queues]]
 - [[file:linkedlists.html][Linked lists]]
+- [[file:hashmaps.html][Hashmaps]]
+- [[file:treesgraphs.html][Trees and graphs]]
 ** Algorithms
 - [[file:bitwisemanip.html][Bitwise manipulation]]
 - [[file:sortsearch.html][Sorting and searching]]
 - [[file:dynprog.html][Dynamic programming and recursion]]
-
-
-#+begin_src latex :exports results :results raw file :file latex.jpg
-  \begin{tikzpicture}
-    \draw node[circle, draw] (a) {$a$}
-      node[circle, draw, right of = a] (b) {$b$}
-      node[circle, draw, below of = a] (c) {$c$}
-      node[circle, draw, below of = b] (d) {$d$};
-  \end{tikzpicture}
-#+end_src
-
-
