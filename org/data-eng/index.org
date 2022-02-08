@@ -10,6 +10,7 @@
 <ul class='navbar'> 
   <li><a href="/">Home</a></li>
   <li><a href="/static/data-eng/index.html">Data Engineering</a></li>
+  <li><a href="/static/soft-eng/index.html">Software Engineering</a></li>
 </ul>
 #+end_export
 
