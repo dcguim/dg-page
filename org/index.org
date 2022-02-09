@@ -17,10 +17,10 @@
 * About this
 
 I have decided to record what I learn, as I believe writing is a great way to
-persist knowledge. Essentially, a tweak of Feynman's study technique, instead of
+persist knowledge. Concretely, a tweak of Feynman's study technique, instead of
 saying out loud, I write.
 
-This blog was generated using emacs org files, therefore, my org notes can be
+This blog was generated using [[https://savannah.gnu.org/projects/emacs/][emacs]] org files, therefore, my org notes can be
 easily exported into HTML. You can look at the [[https://github.com/dcguim/dgpage][source]]. If you are also interested
 in using emacs for creating static websites, there are youtube channels which
 explain this process in greater detail:
@@ -31,7 +31,7 @@ explain this process in greater detail:
 I will try to document different Software and Data engineering topics, and to
 keep it minimally structured and useful for others. However, there might be
 some outliers and some posts won't fit well with the rest of the content. That's
-my bad! I will try bridge the gaps and make topics coherent with eachother, in time.
+my bad! I will try bridging those gaps and make topics coherent with eachother, in time.
 
 #+begin_export html
 <img id="profile-img" src="/static/img/profile-grey.jpg"/>

@@ -1,4 +1,4 @@
-#+TITLE: knowledge repo
+#+TITLE: Big O notation
 #+SUBTITLE: Software Engineering Topics
 #+AUTHOR: Daniel Guimaraes
 #+OPTIONS: toc:nil

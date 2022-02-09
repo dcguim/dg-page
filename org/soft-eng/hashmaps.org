@@ -16,6 +16,37 @@
 </ul>
 #+end_export
 
+* LeetCode: [[https://leetcode.com/problems/longest-substring-without-repeating-characters/][Longest Substring Without Repeating Characters - 3]]
+#+begin_src java
+class Solution {
+    public int lengthOfLongestSubstring(String s) {
+        int answer = -1, j = 0, n = s.length();
+        if (s.isEmpty()) return 0;
+        HashMap<Character, Integer> lastChar = new HashMap<Character,Integer>(n);
+        for (int i=0; i< n; i++){
+            char c = s.charAt(i);
+            if (lastChar.getOrDefault(c, -1) >= j){
+                j = lastChar.get(c) + 1;
+            }
+            answer = Math.max(answer, i-j+1);
+            lastChar.put(c, i);
+        }
+        return answer;
+    }
+}
+#+end_src
+This problem we have to find the longest substring which doesn't contain repeated
+characters. This can be done by defining a limit $j$ and iterating once through
+the characters $s[i]$ 's and looking back until $j$ to see if there is an $s[i]$
+duplicate. The problem with this solution is that in the worst case scenario it
+will take $O(n^2)$, image the input string doesn't have any duplicates, then for
+every character it will look back until $s[0]$ to ensure there is no duplicates.
+
+Like in many algorithms we can make a time and space trade-off. As we are only
+interested in the last seen instance of the current char $s[i]$ so we can compare
+with the limit $j$, we can map the chars last index position in a HashMap. This
+way, we can achieve $O(n)$ complexity with $O(n)$ space, i.e. potentially every
+char will exist in the map, in the worst case, without duplicates.
 
 * LeetCode: [[https://leetcode.com/problems/map-sum-pairs/][Map Sum Pairs - 677]]
 #+begin_src java
@@ -70,7 +101,7 @@ run in amortized (average-case) constant time.
 class Solution {
     public int minSubarray(int[] nums, int p) {
         // find the remainder to reach a multiple of p
-        // target = sum(nums[0..i]) % p
+        // target = sum(nums[0..N]) % p
         int n = nums.length, cursum = 0, target = 0, minlen = n;
         for(int i=0; i<n; i++) target = (target + nums[i]) % p;
         // the amount that must be removed from nums
@@ -91,3 +122,37 @@ class Solution {
     }
 }
 #+end_src
+
+This question is about finding the indexes $j, i$ that must be removed such that
+the remaining numbers are a multiple of $p$. The total sum equals of the input:
+\[
+\frac{\sum{arr[0..N]}}{p} = d + r
+\]
+where $d$ is the dividend and $r$ the remainder. The problem can also be expressed
+as finding the indexes $j, i$ such that:
+\[
+\sum{arr[j,i]} \% p = r
+\]
+Therefore we would like to find the minimum interval such that the the following
+equations holds:
+\[
+target = \sum{arr[0,N]} \% p = \sum{arr[j,i]} \% p = \left(\sum{arr[0,i]} - \sum{arr[0,j]}\right) \% p
+\]
+However, in order to determine all possible indexes $i$ and $j$ that the equation
+above holds would take us $O(n^2)$. Better would be if we could rewrite this
+equation isolating $arr[0,j]$ such that we would be able to only depend on $i$
+and run this in linear time. This would need a bit of modulo arithmetics properties
+knowledge. Concretely, one rule:
+\[(a+b) \% x = ( a \% x + b \% x ) \% x\]
+Therefore we can claim:
+\[
+\left(\sum{arr[0,i]} \% p - \sum{arr[0,j]} \% p - \sum{arr[0,N]} \% p\right) \% p = 0 \\
+\sum{arr[0,j]} \% p = \left(\sum{arr[0,i]} \% p - \sum{arr[0,N]} \% p\right) \% p \\
+\]
+
+In doing so, we can define the prefix by iterating in $O(n)$ through $arr$ defining
+the $cursum = \sum{arr[0,i]} \% p$ and hence the $prefix = cursum - target$. Note
+that in order to define the interval $i-j$ we need to look up previous prefixes,
+which can be done by mapping $cursum$ to $i$. The space needs is also $O(n)$ as
+for each index $i$ there is a respective $cursum$ and they will be all added into
+the HashMap.

@@ -1,0 +1,55 @@
+#+TITLE: Advanced graphs topics
+#+SUBTITLE: Software Engineering Topics
+#+AUTHOR: Daniel Guimaraes
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+#+LaTeX_HEADER: \usepackage{tikz}
+#+LATeX_HEADER: \usepackage{pgfplots}
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../code.css"/>
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css"/>
+#+begin_export html
+<ul class='navbar'> 
+  <li><a href="/">Home</a></li>
+  <li><a href="/static/data-eng/index.html">Data Engineering</a></li>
+  <li><a href="/static/soft-eng/index.html">Software Engineering</a></li>
+</ul>
+#+end_export
+
+
+* Connected components
+The definition of a connected component is the set of nodes reacheable from a
+particular initial node $n_i$, one can also think about a connected component as
+the set of nodes in a binary search tree produced by a complete execution of BFS
+or DFS algorithm. Another way to understand how one can explore nodes on a
+graph $G=(E, N)$ forming a connected component $C_{0}$ starting at node $0$ is:
+
+#+begin_src python
+def explore_graph(E, N):
+  C = {0}
+  while ((a, b) in E and
+	 a in C and
+	 b not in C):
+    C.append(b)
+#+end_src
+  
+Notice we are also solving the connectivity problem, by defining every node $i$
+that is reachable from node $0$. Notice, it is also trivial to define the path
+itself that lead to node $i$, as we know at which iteration $i$ was added to $C$
+and therefore we also know the neighboring node which was in $C$, so we can always
+trace back to node $0$ by keeping the /"parent"/ of each node in $C$. The order
+of which the edges $(a,b)$ will be fetched from the graph $G$ can be defined
+by DFS or BFS algorithm.
+
+We mentioned about connected components relative to a starting node, but what
+about the set of connected components of a graph. One can say:
+
+  //""For any two nodes $a$ and $b$ in a graph, their connected components are
+  either identical or disjoint""//
+
+Here is the proof: assume there are two nodes $a$ and $b$ which their connected
+components are different and connected. That means that starting from $a$, we would
+obtain $C_a$ and starting from $b$ we would obtain $C_b$, if they are different
+that means that there are nodes that exist at least one node $c$ which is in
+w.l.o.g. in $C_a$ but not in $C_b$. That means, there is no path from $b$ to
+$c$, however, as there is a path from $b$ to $a$ and from $a$ to $c$, then there
+must be a path from $b$ to $c$, which is a contradiction.
