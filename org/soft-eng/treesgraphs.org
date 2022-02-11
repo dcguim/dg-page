@@ -16,6 +16,132 @@
 </ul>
 #+end_export
 
+* LeetCode: [[https://leetcode.com/problems/frog-position-after-t-seconds/][Frog Position After T Seconds - 1377]]
+
+#+begin_src java
+class Solution {
+    public double frogPosition(int n, int[][] edges, int t, int target) {
+        int count, cur = 0, start = 1;
+        Double prob = 1.0;
+        Integer par = target;
+        ArrayDeque<Integer> layers = new ArrayDeque<Integer>(n);
+        HashMap<Integer, Integer> parent = new HashMap<Integer, Integer>(n);
+        HashMap<Integer, Integer> childrenCount = new HashMap<Integer, Integer>(n);
+        layers.add(start);
+        // add nodes connected to the current connected component
+        while(layers.size() > 0){
+            cur = layers.remove();
+            count = 0;
+            for (int i=0; i<(n-1); i++){
+                int lNode = edges[i][0], rNode = edges[i][1];
+                if (lNode == cur && rNode != parent.getOrDefault(lNode, -1)){
+                    count+=1;
+                    parent.put(rNode, cur);
+                    layers.add(rNode);
+                }
+                if (rNode == cur && lNode != parent.getOrDefault(rNode, -1)){
+                    count+=1;
+                    parent.put(lNode, cur);
+                    layers.add(lNode);
+                }
+            }
+            childrenCount.put(cur,count);
+        }
+        while(par != start){
+            t -= 1;
+            par = parent.get(par);
+            prob *= childrenCount.getOrDefault(par,1);
+        }
+        return (t == 0 || (t >=0 && childrenCount.get(target) == 0)) ? 1.0/prob : 0.0;
+    }
+}
+#+end_src
+
+In the solution the graph was represented as a matrix, altough the input graphs
+in the test cases were sparse. One could argue that it would be better to transform
+into an adjacency list first for better performance, so an adjacency list implementation
+will be provided further on. In this case, we implemented a bfs solution, which
+at each step of the while loop, we expand the connected component defined by
+$layers$ with unvisited nodes neighboring nodes in $layers$. A normal queue is
+used to add and remove the nodes in the appropriate order, in FIFO fashion,
+although a double-sided queue ArrayDeque implementation is used.
+
+For each node $curr$ this implementation must look at every other node or edge
+(as we are dealing with trees), to verify if the edge is incident from $curr$.
+In each iteration we add the degree $d_{curr}$ nodes to the queue. So edges
+are added to the queue relatively fast around $log_{E(d_n)}(|N|)$ to the queue but
+they are consumed from the queue once at a time. Hence, $O(n^2)$ time.
+
+Regarding space, for each node, count the number or incident edges excluding it's
+parent, as the frog cannot jump back to a visited node, hence, the HashMap
+$childrenCounts$, mapping each node to the count of children. Additionally, we
+have the $parent$ HashMap, which represents the output BFS tree structure, and
+also allow one to easily trace back from the target node to the root. Hence, the
+space complexity is $\Omega(n)$.
+
+Now, let's use DFS with adjacency list instead.
+
+#+begin_src java
+class Solution {
+    public double frogPosition(int n, int[][] edges, int t, int target) {
+        LinkedList<Integer> adjList[] = new LinkedList[n+1];
+        for (int i=0; i<n+1; i++) adjList[i] = new LinkedList<Integer>();
+        for (int[] e : edges){
+            adjList[e[0]].add(e[1]);
+            adjList[e[1]].add(e[0]);
+        }
+        int count, cur, start = 1;
+        Double prob = 1.0;
+        Integer par = target;
+        ArrayDeque<Integer> visited = new ArrayDeque<Integer>(n);
+        HashMap<Integer, Integer> parent = new HashMap<Integer, Integer>(n);
+        HashMap<Integer, Integer> childrenCount = new HashMap<Integer, Integer>(n);
+        visited.add(start);
+        while (visited.size() > 0){
+            count = 0;
+            cur = visited.pollFirst();
+            for(Integer e : adjList[cur]) {
+                if (parent.getOrDefault(cur, -1) != e) {
+                    count += 1;
+                    parent.put(e, cur);
+                    visited.addFirst(e);
+                }
+            }
+            childrenCount.put(cur, count);
+        }
+         while(par != start){
+            t -= 1;
+            par = parent.get(par);
+            prob *= childrenCount.getOrDefault(par,1);
+        }
+        return (t == 0 || (t >=0 && childrenCount.get(target) == 0)) ? 1.0/prob : 0.0;
+    }
+}
+#+end_src
+
+Notice, that the main diference, is that the way the queue is being consumed. In
+this implementation, $visited$ is being consumed in a LIFO fashion. That means,
+the last $cur$ incident node $e$ inspected in the for loop will be the next to be
+removed from the $visited$ list.
+
+The latter implementation ran the test batch in LeetCode in 10ms while the first
+took 11ms, this small diference doensn't account to the time $n+m$ time required
+to initialize the adjecency list and to add all the edges from the matrix.
+Therefore, had the problem provided the graph as an adjacency list as input this
+diference would be bigger.
+
+The complexity here is not the same as before, previously for each node $u$ polled
+from the queue all the $n$ other nodes would be inspected in the matrix, where as
+here, only the neighbors will, i.e. $d_u$. As $\sum_{i\in N}d_i = 2|edges|$,
+hence the nested for loop accounts generally to $O(m)$, as operations such as
+removing from queue $O(1)$ and adding to a HashMap $O(1)$ are being done $n$ times
+the complexity of this algorithm is $O(n+m)$.
+
+Notice that despite the nested nature of the for and while loop, that there is
+no multiplication in the complexity of this algorithm, that because this
+algorithm doesn't loop through all edges for each node, in fact, each edge is
+visited twice, not $n$ times.
+
 
 * LeetCode: [[https://leetcode.com/problems/vertical-order-traversal-of-a-binary-tree][Vertical Order Traversal of a Binary Tree - 987]]
 #+begin_src java
@@ -61,7 +187,7 @@
       public int findPosInCol(int column, int row, int val){
 	  List<Integer> colList = vot.get(column);
 	  int pos = -1;
-  e        // iterate throughout the column
+          // iterate throughout the column
 	  for (int i = colList.size()-1; i >= 0; --i){
 	      int vi = colList.get(i);
 	      if (row < rows.get(vi) || (row == rows.get(vi) && val < vi)){
@@ -181,3 +307,4 @@ binary trees, $n/2$ (imagine a tree which each of the root's children have zigza
 left and right descendents), therefore it takes at most $O(n)$ place an element
 in the answer list. Hence it will take $O(N^2)$ or $O(E.N)$ as in binary trees
 the number of edges $E=N-1$.
+

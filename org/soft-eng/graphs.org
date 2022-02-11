@@ -1,4 +1,4 @@
-#+TITLE: Advanced graphs topics
+#+TITLE: Advanced graph topics
 #+SUBTITLE: Software Engineering Topics
 #+AUTHOR: Daniel Guimaraes
 #+OPTIONS: toc:nil
@@ -15,41 +15,79 @@
 </ul>
 #+end_export
 
+* Connectivity
+  The form and intensity which nodes are connected to each other is an important
+  factor when designing graph algorithms. Usually, a graph is implemented either
+  as an adjacency list or a matrix, if every node  is connected to each other
+  (the graph is /strongly/ connected), then one might prefer a $\Omega(n^2)$
+  matrix representation as the presence of edges can be fetched in $\Omega(1)$,
+  retrieving a current node's neighbor is returned in $\Omega(n)$.
 
-* Connected components
-The definition of a connected component is the set of nodes reacheable from a
-particular initial node $n_i$, one can also think about a connected component as
-the set of nodes in a binary search tree produced by a complete execution of BFS
-or DFS algorithm. Another way to understand how one can explore nodes on a
-graph $G=(E, N)$ forming a connected component $C_{0}$ starting at node $0$ is:
+  The degree $d_a$, is the notation measures how connected is node $a$. For
+  /sparse/ graphs, when the degrees of the nodes are usually smaller than $n$
+  an $\Omega(n+m)$ adjacency list representation is better fit. Notice, in such
+  lists, the sum of all degrees for every node, assuming undirected edges, is:
 
-#+begin_src python
-def explore_graph(E, N):
-  C = {0}
-  while ((a, b) in E and
-	 a in C and
-	 b not in C):
-    C.append(b)
-#+end_src
+  \[ \sum_{i \in N} d_i = 2m \]
+
+  As the same edge $(a, b)$ exists in $adj[a]$ and $adj[b]$. Retrieving
+  neighbors of $a$ can be made in $\Omega(d_a)$, by simply looking up $adj[a]$ and
+  similarly for checking the presence of an edge. Notice, that depending on how
+  sparse a graph is traversing it can amount to a significant time reduction.
+  Imagine in a tree-traversal algorithm, the neighbors of each node are retrieved,
+  then we would have $\Omega(m) = \Omega(n)$ time for adjacency lists while
+  $\Omega(n^2)$ for matrixes.
+
+  For a practical example on the complexity implications of the two implementation
+  the LeetCode solution and discution for [[https://leetcode.com/problems/frog-position-after-t-seconds/][Frog Position After T Seconds - 1377]]
+  can be found in the [[file:treesgraphs.html][Trees and graphs]] page.
+
+** Connected components
+  The definition of a connected component is the set of nodes reacheable from a
+  particular initial node $n_i$, one can also think about a connected component as
+  the set of nodes in a binary search tree produced by a complete execution of BFS
+  or DFS algorithm. Another way to understand how one can explore nodes on a
+  graph $G=(E, N)$ forming a connected component $C_{0}$ starting at node $0$ is:
   
-Notice we are also solving the connectivity problem, by defining every node $i$
-that is reachable from node $0$. Notice, it is also trivial to define the path
-itself that lead to node $i$, as we know at which iteration $i$ was added to $C$
-and therefore we also know the neighboring node which was in $C$, so we can always
-trace back to node $0$ by keeping the /"parent"/ of each node in $C$. The order
-of which the edges $(a,b)$ will be fetched from the graph $G$ can be defined
-by DFS or BFS algorithm.
+  #+begin_src python
+  def explore_graph(E, N):
+    C = {0}
+    while ((a, b) in E and
+  	 a in C and
+  	 b not in C):
+      C.append(b)
+  #+end_src
+    
+  Notice we are also solving the connectivity problem, by defining every node $i$
+  that is reachable from node $0$. Notice, it is also trivial to define the path
+  itself that lead to node $i$, as we know at which iteration $i$ was added to $C$
+  and therefore we also know the neighboring node which was in $C$, so we can always
+  trace back to node $0$ by keeping the /"parent"/ of each node in $C$. The order
+  of which the edges $(a,b)$ will be fetched from the graph $G$ can be defined
+  by DFS or BFS algorithm.
+  
+  We mentioned about connected components relative to a starting node, but what
+  about the set of connected components of a graph. One can say:
+  
+    //""For any two nodes $a$ and $b$ in a graph, their connected components are
+    either identical or disjoint""//
+  
+  Here is the proof: assume there are two nodes $a$ and $b$ which their connected
+  components are different and connected. That means that starting from $a$, we would
+  obtain $C_a$ and starting from $b$ we would obtain $C_b$, if they are different
+  that means that there are nodes that exist at least one node $c$ which is in
+  w.l.o.g. in $C_a$ but not in $C_b$. That means, there is no path from $b$ to
+  $c$, however, as there is a path from $b$ to $a$ and from $a$ to $c$, then there
+  must be a path from $b$ to $c$, which is a contradiction.
 
-We mentioned about connected components relative to a starting node, but what
-about the set of connected components of a graph. One can say:
+** Complexity in Graph Algorithms
+  Normally, the running time of graph algorithms are expressed in terms of
+  $(n=|N|, e=|E|)$ for $G(N,E)$. However, it is not always obvious which complexity
+  to prioritize, will an algorithm in $O(n^3)$ or $O(e^2)$ run faster? Well, it
+  depends on the relationship between $n$ and $e$. If we consider a single
+  connected component, there should be at least $n-1$, and at most $C^{n}_{2} < n^2$
+  edges. Therefore, for trees $O(e^2)$ is better, while for strongly connected
+  graphs $O(n^3)$ is.
 
-  //""For any two nodes $a$ and $b$ in a graph, their connected components are
-  either identical or disjoint""//
-
-Here is the proof: assume there are two nodes $a$ and $b$ which their connected
-components are different and connected. That means that starting from $a$, we would
-obtain $C_a$ and starting from $b$ we would obtain $C_b$, if they are different
-that means that there are nodes that exist at least one node $c$ which is in
-w.l.o.g. in $C_a$ but not in $C_b$. That means, there is no path from $b$ to
-$c$, however, as there is a path from $b$ to $a$ and from $a$ to $c$, then there
-must be a path from $b$ to $c$, which is a contradiction.
+* References
+  + Kleinberg, J., Tardos, &E. (2006). Algorithm Design. Addison Wesley.
