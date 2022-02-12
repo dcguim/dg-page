@@ -27,7 +27,6 @@
   /sparse/ graphs, when the degrees of the nodes are usually smaller than $n$
   an $\Omega(n+m)$ adjacency list representation is better fit. Notice, in such
   lists, the sum of all degrees for every node, assuming undirected edges, is:
-
   \[ \sum_{i \in N} d_i = 2m \]
 
   As the same edge $(a, b)$ exists in $adj[a]$ and $adj[b]$. Retrieving

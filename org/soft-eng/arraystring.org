@@ -56,8 +56,10 @@ class Solution {
 }
 #+end_src
 
-Say that the string is of length $n$, and there are $p$ HTML entities ($p=N_{semicolons}=N_{amperstands}$)
-in the string. The while loop will iterate $p$ times, everytime it will run a 
+Say that the string is of length $n$, and there are $p$ HTML entities in a string:
+\[p=N_{semicolons}=N_{amperstands}\]
+
+The while loop will iterate $p$ times, everytime it will run a 
 $O(n)$ $indexOf()$ method which iterates through the string checking
 a characters one by one, and the $substring$ method taking also $O(n)$ for 
 creating a copy of the original $text$ string. Therefore the complexity is $O(n)$
