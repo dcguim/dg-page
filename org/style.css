@@ -9,10 +9,10 @@
 
 
 body {
-    background: grey;
     color: #333;
     text-align: left;
     font-family: 'Open Sans';
+    background: url(img/mochaGrunge.png);
 }
 
 h1 {
@@ -38,14 +38,16 @@ ul.navbar {
     margin: 0;
     padding: 0;
     overflow: hidden;
-    background-color: #cdc9f4;  
+    border-radius: 0.5em;
+    background-color: whitesmoke;
+    justify-content: space-around;
 }
 
 
 ul.navbar li a {
     display: block;
     padding: 8px;
-    background-color: #cdc9f4;
+    background-color: whitesmoke;
     color: black;
 }
 ul.navbar li a:hover {
@@ -54,7 +56,8 @@ ul.navbar li a:hover {
 
 @media screen and (min-width:700px) {
 ul.navbar {
-display: flex;
+    display: flex;
+    justify-content: space-around;
 }
 }
 .contact {
@@ -83,6 +86,7 @@ ul.contact li {
     margin: auto;
     font-family: 'Open Sans';
     background: whitesmoke;
+    background: url(img/brushed.png);
     padding: 4%;
     border-radius:1em;
     overflow: hidden;
@@ -93,6 +97,10 @@ ul.contact li {
   display: block;
 }
 
+#postamble {
+    margin: auto;
+    text-align: center;
+}
 #profile-img {
     display: block;
     border-radius: 50%;
