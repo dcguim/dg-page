@@ -37,7 +37,7 @@ p {
 }
 
 pre.src {
-    overflow: hidden;
+    overflow: auto;
 }
 
 ul.navbar {
