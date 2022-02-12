@@ -102,7 +102,7 @@ ul.contact li {
   height: auto;
   display: block;
 }
-.org-source-container {
+.org-src-container {
     -webkit-overflow-scrolling: touch;
     overflow-y: scroll;
 }
