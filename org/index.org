@@ -1,5 +1,4 @@
 #+TITLE: knowledge repo
-#+SUBTITLE: Overview
 #+AUTHOR: Daniel Guimaraes
 #+OPTIONS: toc:nil
 #+OPTIONS: num:nil

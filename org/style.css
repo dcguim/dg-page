@@ -20,6 +20,10 @@ h1 {
     text-align: center;
 }
 
+h1.title {
+    margin-bottom: 8%;
+}
+
 a {
     color: #7d74e3;
 }
@@ -60,6 +64,8 @@ ul.navbar {
     justify-content: space-around;
 }
 }
+
+
 .contact {
     display: table;
 }
