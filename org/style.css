@@ -20,7 +20,7 @@ h1 {
     text-align: center;
 }
 
-h2, h3, h4, a {
+a {
     color: #7d74e3;
 }
 
@@ -38,18 +38,25 @@ ul.navbar {
     margin: 0;
     padding: 0;
     overflow: hidden;
+    background-color: #cdc9f4;  
 }
 
-ul.navbar li {
-    float: left;
-}
 
 ul.navbar li a {
     display: block;
     padding: 8px;
-    background-color: #dddddd;  
+    background-color: #cdc9f4;
+    color: black;
 }
+ul.navbar li a:hover {
+    color: #6a5fdf;
+}   
 
+@media screen and (min-width:700px) {
+ul.navbar {
+display: flex;
+}
+}
 .contact {
     display: table;
 }
@@ -77,13 +84,18 @@ ul.contact li {
     font-family: 'Open Sans';
     background: whitesmoke;
     padding: 4%;
-    border-radius:3%;
+    border-radius:1em;
+    overflow: hidden;
+}
+#content img {
+  max-width: 100%;
+  height: auto;
+  display: block;
 }
 
 #profile-img {
     display: block;
     border-radius: 50%;
     width: 140px;
-    padding: 3%;
     margin: auto;
 }
