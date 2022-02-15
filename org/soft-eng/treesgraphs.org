@@ -1,20 +1,10 @@
 #+TITLE: Trees and graphs
 #+SUBTITLE: Software Engineering Topics
-#+AUTHOR: Daniel Guimaraes
+#+INCLUDE: "../navbar.html" export html
 #+OPTIONS: toc:nil
 #+OPTIONS: num:nil
 #+LaTeX_HEADER: \usepackage{tikz} 
 #+LaTeX_HEADER: \usetikzlibrary{graphs, arrows.meta}
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../code.css"/>
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css"/>
-
-#+begin_export html
-<ul class='navbar'> 
-  <li><a href="/">Home</a></li>
-  <li><a href="/static/data-eng/index.html">Data Engineering</a></li>
-  <li><a href="/static/soft-eng/index.html">Software Engineering</a></li>
-</ul>
-#+end_export
 
 * LeetCode: [[https://leetcode.com/problems/frog-position-after-t-seconds/][Frog Position After T Seconds - 1377]]
 

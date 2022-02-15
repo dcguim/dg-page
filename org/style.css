@@ -14,7 +14,10 @@ body {
     font-family: 'Open Sans';
     background: url(img/mochaGrunge.png);
 }
-
+span.subtitle {
+    font-size: 50%;
+    font-weight: normal;
+}
 h1 {
     color: #333;
     text-align: center;
@@ -36,6 +39,7 @@ p {
     text-align: justify;
 }
 
+.
 pre.src {
     overflow: auto;
 }

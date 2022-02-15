@@ -70,7 +70,11 @@ the horizontal and vertical directions."
    ))
 (setq org-html-validation-link nil
       org-html-self-link-headlines nil
-      org-html-htmlize-output-type 'css)
+      org-html-htmlize-output-type 'css
+      org-html-head-include-scripts nil
+      org-html-head-include-default-style nil
+      org-html-head "<link rel=\"stylesheet\" type=\"text/css\" href=\"/static/style.css\"/>
+                     <link rel=\"stylesheet\" type=\"text/css\" href=\"/static/code.css\"/>")
 
 (org-publish-all t)
 

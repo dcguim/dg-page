@@ -1,20 +1,10 @@
 #+TITLE: Dynamic Programming and recursion
 #+SUBTITLE: Software Engineering Topics
-#+AUTHOR: Daniel Guimaraes
+#+INCLUDE: "../navbar.html" export html
 #+OPTIONS: toc:nil
 #+OPTIONS: num:nil
 #+HEADER: :results output silent :headers '("\\usepackage{tikz}")
 #+HEADER: :results output silent :headers '("\\usepackage{pgfplots}")
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../code.css"/>
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../style.css"/>
-
-#+begin_export html
-<ul class='navbar'> 
-  <li><a href="/">Home</a></li>
-  <li><a href="/static/data-eng/index.html">Data Engineering</a></li>
-  <li><a href="/static/soft-eng/index.html">Software Engineering</a></li>
-</ul>
-#+end_export
 
 * GeeksForGeeks: [[https://practice.geeksforgeeks.org/problems/0-1-knapsack-problem0945/1][0 - 1 Knapsack Problem]]
 #+begin_src java
@@ -104,4 +94,34 @@ $i-wt[j]$.
 	   return memory.get(state);
        }
    }
- #+end_src
+#+end_src
+* LeetCode: [[https://leetcode.com/problems/super-egg-drop/][Super Egg Drop - 887]]
+#+begin_src java
+class Solution {
+    public int superEggDrop(int k, int n) {        
+        int[]dp=new int[k+1];
+        int m=0; 
+        
+        while(dp[k]<n){
+            m++;
+            for(int i=k; i>0; i--){
+                dp[i]+=dp[i-1]+1;
+            }
+        }
+        return m;
+    }
+}
+#+end_src
+The variable $dp[i]$ in this solution refers to the number of floors which f can
+be defined with certainty with $i$ eggs. At each iteration of the while loop
+there is one additional move available compared to the last iteration, and the
+question becomes how can one fill $dp$ taking into consideration previous values.
+Imagine we found ourselves in the middle the building, if we drop the egg in that
+floor and it breaks we can conclude that f is in lower floors, and we have one
+less move, that is exactly $dp[i-1]$ from our previous while loop iteration. If
+the egg doesn't break, then we conclude f is in upper floors and we can still
+reach $dp[i]$ of them, hence:
+\[dp[i] = dp[i] + dp[i-1] + 1\]
+
+Notice the $+1$ accounts for the floor we are in, and that the first move drops
+the egg in a new floor.

@@ -1,17 +1,8 @@
 #+TITLE: knowledge repo
-#+AUTHOR: Daniel Guimaraes
+#+INCLUDE: "navbar.html" export html
 #+OPTIONS: toc:nil
 #+OPTIONS: num:nil
 #+HEADER: :results output silent :headers '("\\usepackage{tikz}")
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="static/code.css"/>
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="static/style.css"/>
-#+begin_export html
-<ul class='navbar'> 
-  <li><a href="/">Home</a></li>
-  <li><a href="/static/data-eng/index.html">Data Engineering</a></li>
-  <li><a href="/static/soft-eng/index.html">Software Engineering</a></li>
-</ul>
-#+end_export
 
 * About this
 
