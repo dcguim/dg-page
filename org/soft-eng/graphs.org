@@ -28,9 +28,9 @@
   then we would have $\Omega(m) = \Omega(n)$ time for adjacency lists while
   $\Omega(n^2)$ for matrixes.
 
-  For a practical example on the complexity implications of the two implementation
+  For a practical example on the complexity implications of the two implementations
   the LeetCode solution and discution for [[https://leetcode.com/problems/frog-position-after-t-seconds/][Frog Position After T Seconds - 1377]]
-  can be found in the [[file:treesgraphs.html][Trees and graphs]] page.
+  can be found in the [[file:treesgraphs.html][Trees and graphs]] page. 
 
 ** Connected components
   The definition of a connected component is the set of nodes reacheable from a
@@ -62,7 +62,7 @@
     //""For any two nodes $a$ and $b$ in a graph, their connected components are
     either identical or disjoint""//
   
-  Here is the proof: assume there are two nodes $a$ and $b$ which their connected
+  *proof:* assume there are two nodes $a$ and $b$ which their connected
   components are different and connected. That means that starting from $a$, we would
   obtain $C_a$ and starting from $b$ we would obtain $C_b$, if they are different
   that means that there are nodes that exist at least one node $c$ which is in
@@ -79,5 +79,40 @@
   edges. Therefore, for trees $O(e^2)$ is better, while for strongly connected
   graphs $O(n^3)$ is.
 
+* Bipartiteness
+  A bipartite graph is one which all of it's nodes $N$ can be divided into sets
+  $A$ and $B$ such that each node in $A$ has a neighbor in $B$ and vice versa.
+  Not every graph can be organized in such way, it's possible that for a graph
+  $G$ to have one of it's edges connect nodes from $A$ to $A$. But what
+  characteristic this graph must have to not be bipartite?
+
+  Imagine we have a linear path $p_{1-x}$ that connects node 1 to node $x$, and
+  we are trying to ensure bipartiteness , if $n_1$ is in $A$, then $n_2$ is
+  necessarily in $B$, and node $n_3$ in $A$, and so forth. If any node
+  $n_{2*i+1}$ for $i>1$ has an edge back to $n_1$ then $G$ is not bipartite. That
+  is, if there is an odd-sized cycle.
+
+  To check bipartiteness in a single connected component one could just use BFS
+  and add assign each node in odd layers to $A$ and those in even layers $B$,
+  on the end one could just check for each edge in $G$ if it's ends are in
+  different sets. If a node in $L_{2i}$ has an edge to any node in $L_{2j}$ or
+  if a node in $L_{2i+1}$ has an edge to a node in $L_{2j+1}$ then there is an
+  odd-sized cycle and hence bipartiteness cannot be ensured. We can also attempt
+  to prove that the BFS algorithm described above is correct.
+
+  *proof:* Imagine there is an odd cycle and the BFS algorithm described above
+  claims the graph is bipartite, let's assume w.l.o.g the cycle loops from
+  the root $n_i \in L_1$ until $n_j \in L_2$ then back to $n_i$. There is a
+  property of BFS trees $T$ which states that every pair of nodes $(x,y)$
+  which have an edge between themselves are either in adjacent layers or in the
+  same layer in a BFS tree. If for every edge in the odd-sized loop the nodes
+  are in adjacent edges then the loop cannot be odd-sized. To check this property
+  let's pick the node furthest away from $n_i$, $n_h \in L_h$. If $n_h$ only
+  has nodes with adjacent edges and is the highest node, then it must make the
+  way back to $n_j$ through an edge in $L_{h-1}$ yielding a loop of size
+  $h+1+h-1 = 2h$ which by contradiction is not an odd-sized loop. Therefore
+  an odd-sized loop node must have an edge between nodes in the same layer, hence,
+  not bipartite as those nodes would be in the same set.
+  
 * References
   + Kleinberg, J., Tardos, &E. (2006). Algorithm Design. Addison Wesley.

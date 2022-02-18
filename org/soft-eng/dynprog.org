@@ -124,4 +124,75 @@ reach $dp[i]$ of them, hence:
 \[dp[i] = dp[i] + dp[i-1] + 1\]
 
 Notice the $+1$ accounts for the floor we are in, and that the first move drops
-the egg in a new floor.
+the egg in a new floor. It would be nice to build a sense of how fast is $dp[k]$
+reaching $n$ so we could understant how fast this program runs. Let's assume for
+simplicity that $n=9$ and $k=2$:
+|-----+-------+-------|
+|   m | dp[2] | dp[1] |
+|-----+-------+-------|
+|   1 |     1 |     1 |
+|   2 |     3 |     2 |
+|   3 |     6 |     3 |
+|   4 |    10 |     4 |
+| ... |   ... |   ... |
+|-----+-------+-------|
+
+Notice that while $dp[1]$ approaches $n$ linearly, $dp[2]$ seems to be a some
+strange series which is neither geometric nor arithmetic but as we already
+uncovered in the algorithm it is exactly $dp[1]$ so we have an arithmetic
+progression which it's ratio behaves as an arithmetic progression of ratio 1.
+|------+-------|
+| term | incr. |
+|------+-------|
+|    1 |     - |
+|    3 |     2 |
+|    6 |     3 |
+|   10 |     4 |
+|------+-------|
+
+So how would we describe the $n$ -th dp[2]?
+
+\[ dp[2]_n = 1 + 2 + 3 + ... + n = \dfrac{n(n+1)}{2}\]
+
+
+Hence, $dp[2]$ advances quadratically towards $n$, therefore $O(log(n))$. But we
+are not interested in having the constraint of $k=2$. So would removing this
+constraint lead us to a different uper bound?
+
+Let's look into what would change had $k=3$:
+|-----+-------+-------+-------|
+|   m | dp[3] | dp[2] | dp[1] |
+|-----+-------+-------+-------|
+|   1 |     1 |     1 |     1 |
+|   2 |     3 |     3 |     2 |
+|   3 |     7 |     6 |     3 |
+|   4 |    14 |    10 |     4 |
+| ... |   ... |   ... |   ... |
+|-----+-------+-------+-------|
+
+The increment now changed! Now the increment of the increment is linear!
+|------+-------+-------|
+| term | incr. | incr. |
+|------+-------+-------|
+|    1 |     - |     - |
+|    3 |     2 |     - |
+|    7 |     4 |     2 |
+|   14 |     7 |     3 |
+|   25 |    11 |     4 |
+|------+-------+-------|
+
+That means that the middle column is concretely $dp[2]$ if we had started from
+2 as opposed to one. And hence $dp[3]_n$ would be roughly:
+
+\[dp[3]_n = \sum \dfrac{n(n+1)}{2} = \dfrac{1}{2}\sum n^2 + \dfrac{1}{2}\sum n\]
+
+To solve $\dfrac{1}{2}\sum n^2$ we need to draw some insight from the Faulhaber's
+formula, luckily, I have written another [[file:faulhaberseries.html][post]] about it.
+
+The answer is that we always a polynomial with the order of the sum plus one that
+means in the order of $n^3$. As we will always add a new summation for each higher
+value of $k$ we are always approaching $n$ with $n^k$ which will change the
+base of the logarithm. But we don't care about the base as it's always just a
+constant away, so we will stay with $log(n)$. However, for each higher value of
+$k$ we will have a higher computation time for the inner for loop, therefore
+the final upper bound is $O(klog(n))$

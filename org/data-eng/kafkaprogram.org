@@ -1,0 +1,206 @@
+#+TITLE: Interacting with Kafka programatically
+#+SUBTITLE: Data Engineering Topics
+#+INCLUDE: "../navbar.html" export html
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+#+OPTIONS: _:nil
+* Kafka AdminClient Class
+  This post walks one through with interacting with Kafka using Java, why is this
+  necessary? In my case, I was working with ETL pipelines consisting a series
+  of processors and each processor would subscribe to a kafka topic, process the
+  data obtained and publish the data to another kafka topic. This way, we could
+  measure the maturity of our data processing, that means, we would be able to
+  point-out the processor which some portion of the data couldn't be processed or
+  failed a validity test. That would enable us to quickly handle this data
+  accordingly.
+
+  Kafka turned out to be a great way to perform black-box system tests, i.e. to
+  test the processors without testing the processors' code but rather the state
+  of kafka. It is however really hard to query the state of Kafka by using the
+  provided Kafka binaries and some shell scripting, so in this case, interacting
+  with Kafka programatically was the way to go.
+
+  Kafka's [[https://kafka.apache.org/23/javadoc/index.html?org/apache/kafka/clients/admin/AdminClient.html][AdminClient]] class is the way in, upon specification of the broker details,
+  one can start interacting with the Kafka broker, and for instance fetch topics,
+  it's partitions and offsets, as well as create and delete topics, as well as
+  resetting or deleting offsets of topic-partitions. It's reasonable to say,
+  interacting with the contents of records require [[https://kafka.apache.org/26/javadoc/index.html?org/apache/kafka/clients/consumer/KafkaConsumer.html][KafkaConsumer]] class to
+  read them and [[https://kafka.apache.org/10/javadoc/index.html?org/apache/kafka/clients/producer/KafkaProducer.html][KafkaProducer]] to write them. Let's first look at the configuration
+  of the AdminClient that enables this interaction.
+
+** Instantiating an AdminClient
+   We will disregard any security configuration setting although this might be necessary
+   at this part in real applications.
+   
+#+begin_src java
+  public StreamAdminClient() throws FileNotFoundException, IOException {
+      Properties appProps = new Properties();
+      try (InputStream is = getClass().getResourceAsStream(appPropsLocation)) {
+	      appProps.load(is);
+      } catch (IOException e){
+	      logger.error("Failed to read application properties from disk, " +  
+	      "please configure the appropriate appPropsLocation variable.");
+	      logger.error(e.getMessage());
+      }
+      Properties props = new Properties();
+      // kafka core configurations
+      String bootstrapServers = appProps.getProperty("kafkabroker.host") + ":" +
+	  appProps.getProperty("kafkabroker.port");
+      props.setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+      props.setProperty(AdminClientConfig.DEFAULT_API_TIMEOUT_MS_CONFIG,
+			appProps.getProperty("timeout"));
+      // your kafka security configurations
+      streamAdmin = AdminClient.create(props);
+      }
+  }	
+#+end_src
+   There are two Properties objects being used here the first one $appProps$
+   fetches the configuration locally and in $appPropsLocation$, we also create
+   a $props$ to add all the configuration we need for interacting with the broker.
+   The only required information is the BOOTSTRAP SERVERS CONFIG
+   concatenation of the host and port of the kafka broker you are trying to reach.
+   Is this broker running locally on a docker network or is it running in cloud
+   service provider, how about the above java code?
+
+   Next, configure the following the timeout configuration. But to understand
+   why it's necessary let's look at the [[https://docs.confluent.io/][documentation]] of the following three configs:
+   
+   + *DEFAULT API TIMEOUT MS CONFIG:* Specifies the timeout (in milliseconds) for
+     client APIs. This configuration is used as the default timeout for all
+     client operations that do not specify a timeout parameter.
+   + *SOCKET CONNECTION SETUP TIMEOUT MAX MS CONFIG:* The *maximum* amount of time
+     the client will wait for the socket connection to be established. 
+   + *SOCKET CONNECTION SETUP TIMEOUT MS CONFIG:* The amount of time the client
+     will wait for the socket connection to be established.
+
+   When this client tries to connect with the broker and establish a socket connection
+   they will first exchange some messages. Firstly, the client will try to
+   reach the broker, if the BOOTSTRAP SERVERS CONFIG is correctly defined,
+   the broker will return the host and port which the admin can use, and only then
+   the admin can start changing the state of the kafka broker. The reason I am
+   setting the timeout configuration is to prevent that due to moments with particularly
+   high internet data transfer latency the socket connection won't timeout and
+   something like "ConnectException: Connection refused" will be thrown.
+   The default is one minute (60000ms), in the use case described above five
+   minutes (300000ms) would suffice.
+
+   Notice that the $AdminClient$ class is abstract which means we cannot simply
+   instantiate an object, we need to use it's method $create()$ with our Properties
+   parameter to do so.
+
+** Fetching topics, it's partitions, and offsets
+   Most operations can be done with a few lines of code, but others require some
+   object wrangling. Let's look how we would fetch topics:
+
+   First we need to decide if we would like also to list the internal kafka topics,
+   such as $__consumer_offsets$ used internally for Kafka to keep track of commited
+   offsets for each topic. Say we do want to retrieve those as well, moreover we
+   can retrieve some $KafkaFuture$ representing the topics by calling the $listTopics(options)$
+   method. java.util.concurrent has an interface called $Future$ which sheds
+   a light into the meaning of $KafkaFuture$:
+#+begin_src java
+    public void fetchTopics() throws InterruptedException, ExecutionException {
+        ListTopicsOptions options = new ListTopicsOptions();
+        options.listInternal(true);
+        KafkaFuture<Set<String>> topicsFuture = streamAdmin.listTopics(options).names();
+        topics = topicsFuture.get();
+        for (String topic : topics) logger.info("[Kafka topic]: " + topic);
+    }
+#+end_src
+
+//"A Future represents the result of an asynchronous computation. Methods are provided to check
+if the computation is complete, to wait for it's completion and to retrieve the result of a computation"//
+
+   A KafkaFuture can be seen as a promise based a few assumptions, in this case,
+   a promise that it will return a set of strings of topic names, however, it
+   assumes a few things are in place, for instance, that the broker won't
+   fail in runtime while the names are being retrieved, or that your young brother
+   will not unplug the internet power cable while you are trying to reach a
+   broker hosted in a VM of your cloud service provider somewhere in Alaska. Jokes
+   aside, this KafkaFuture implements a Future interface that ensures you can
+   $get()$ values and if necessary the future will block the execution of the
+   client program until the computation is complete (the topic names are fetched).
+
+   Next, let's fetch a given topic's partitions:
+   
+#+begin_src java
+    public List<TopicPartition> getTopicPartitions(String topic) {
+	 try {
+	    Map<String, TopicDescription> topicPartitions = 
+	    		 streamAdmin.describeTopics(Collections.singleton(topic)).all().get();
+	    List<TopicPartition> listTopicPartitions = topicPartitions.get(topic).partitions().stream()
+	    		 .map((TopicPartitionInfo partInfo) -> new TopicPartition(topic, partInfo.partition()))
+	    		 .collect(Collectors.toList());
+	    return listTopicPartitions;
+	 } catch (InterruptedException | ExecutionException e) {
+	     logger.error(e.getMessage());
+	     throw new RuntimeException(String.format("It was not possible to obtain " +
+	                 "the partition for topic %s from KafkaFuture.", topic));
+	 }
+     }
+#+end_src
+
+    The $streamAdmin.describeTopics(Collections.singleton(topic))$ returns a Map
+    from a String with the topic name to a $TopicDescription$, which, in turn, contains the partition information.
+    Notice that it's possible to retrieve the description from multiple topics, in
+    this case, a singleton is provided. Additionally, notice that the $all()$
+    method returns a KafkaFuture which we're getting, that means that this block
+    could potentially throw an $InterruptedException$ or $ExecutionException$.
+    Once the topic's description map is fetched, we can get the key of interest
+    and return a list of $TopicPartitionInfo"  with the $partitions()$ method.
+    Kafka also provides a $TopicPartition$ class which is used to represent the
+    pair of topic + partition number, and that's exactly what we are returning,
+    a list of topic-partitions. 
+
+    Now, for each of those topic + partitions let's look at it's offsets. Notice
+    one can look at the earliest, latest or the offset at some point in time.
+    Therefore Kafka provides the $OffsetSpec$ class which enables you to do just
+    that: 
+
+#+begin_src java
+    public ListOffsetsResult getTopicOffsets(String topic, OffsetSpec spec) {
+        List<TopicPartition> topicPartitions = getTopicPartitions(topic);
+        Map<TopicPartition, OffsetSpec> topicPartitionOffsets = new HashMap<>();
+        topicPartitions.stream()
+        	.forEach(tp -> topicPartitionOffsets.put(
+        			new TopicPartition(topic, tp.partition()), 
+        			spec));
+        return streamAdmin.listOffsets(topicPartitionOffsets);
+    }
+#+end_src
+   This function receives a particular topic and a offset specification and return
+   a $ListOffsetsResult$. The key method here $listOffsets(topicPartitionOffsets)$.
+   All we do in this function is to build a HashMap that maps each TopicPartition
+   to one of the three:
+
+   + OffsetSpec.EarliestSpec 
+   + OffsetSpec.LatestSpec 
+   + OffsetSpec.TimestampSpec
+
+   In order to retrieve the exact offset from a one must provide a topic partition
+   to the ListOffsetsResult object returned. This is one test we could write to
+   check a topic's offset:
+
+#+begin_src java
+    @Test
+    public void getTopicOffsetTest() {
+        ListOffsetsResult offsetResult = client.getTopicOffsets(topicName, OffsetSpec.latest());
+        Boolean hasOffset = false;
+        try {
+            List<TopicPartition> topicPartitions = client.getTopicPartitions(topicName);
+            for (TopicPartition tp : topicPartitions) {
+                ListOffsetsResultInfo topicPartOffset = offsetResult.partitionResult(tp).get();
+                logger.info(String.format("[Topic Offset] topic : %s, partition : %d , latest offset :  %d ", 
+                		tp.topic(), tp.partition(), topicPartOffset.offset()));
+            }
+            hasOffset = true;
+        } catch (InterruptedException | ExecutionException e) {
+            logger.error(e.getMessage());
+            throw new RuntimeException("The asynchronous operation of fetching the topic's offset failed!");
+        }
+        assertTrue(hasOffset);
+    }
+#+end_src
+
+   
+   

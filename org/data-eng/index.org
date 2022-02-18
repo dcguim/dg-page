@@ -5,7 +5,11 @@
 #+OPTIONS: num:nil
 #+HEADER: :results output silent :headers '("\\usepackage{tikz}")
 
-* Topics 
-- [[file:bigquery.html][Exploring GCP's BigQuery and Dataflow]]
+* Kafka
 - [[file:kafkaconfig.html][Configuring Kafka for production]]
+- [[file:kafkaprogram.html][Interacting with Kafka programatically]]
+  
+* Cloud Services 
+- [[file:bigquery.html][Exploring GCP's BigQuery and Dataflow]]
+
 

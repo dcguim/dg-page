@@ -179,3 +179,152 @@ auxiliary deque is used to store the values before the element. Then, it adds
 the values back to the queue and updates the value of the existing key. Notice,
 it will take $\le n$ times to find the key plus $\le n$ times to put it back.
 Therefore, the $set$ will also take $O(n)$.
+
+* LeetCode
+#+begin_src java
+class Solution {
+    class Cell{
+        public Cell (int r, int c, int v){
+            pos = new int[]{r, c};
+            value = v;
+        }
+        int[] pos;
+        public int value;
+        public int rank;
+    }
+    int[][] grid;
+    
+    PriorityQueue<Cell> heap;
+    
+    HashMap<Integer, Integer> visitedDistance;
+    
+    ArrayDeque<int[]> unexplored;
+    
+    // pos = 1 upper neighbor
+    // pos = 2 right neighbor
+    // pos = 3 down neighbor
+    // pos = 4 left neighbor
+    public void visitNeighbor(int[][] grid, int row, int col, byte pos, int[] pricing){
+        int r = (pos == 2) ? row+1 : (pos == 4) ? row-1 : row;
+        int c = (pos == 1) ? col+1 : (pos == 3) ? col-1 : col;
+        if (r < grid.length && r >= 0 && c < grid[0].length && c >= 0 && grid[r][c] > 0 && 
+           visitedDistance.getOrDefault(r*grid[0].length + c, -1) == -1){
+            unexplored.add(new int[]{r,c});
+            int rank = visitedDistance.get(row*grid[0].length+ col) + 1;
+            visitedDistance.put(r*grid[0].length+ c, rank);
+            if (grid[r][c] >= pricing[0] && grid[r][c] <= pricing[1]){
+                Cell n = new Cell(r, c, grid[r][c]);
+                n.rank = rank;
+                heap.add(n);
+            }
+        }
+    }
+    public List<List<Integer>> highestRankedKItems(int[][] grid, int[] pricing, int[] start, int k) {
+        int r, c, rank, nCells = grid.length*grid[0].length;
+        // create a heap that will keep nodes with higher rank at the top
+        heap = new PriorityQueue<Cell>(nCells, 
+            (c1, c2) -> (c1.rank != c2.rank) ? c1.rank - c2.rank : 
+            (c1.value != c2.value) ? c1.value - c2.value : 
+            (c1.pos[0] != c2.pos[0]) ? c1.pos[0] - c2.pos[0] : c1.pos[1] - c2.pos[1]);
+        Cell iniCell = new Cell(start[0], start[1], grid[start[0]][start[1]]);
+        if (iniCell.value >= pricing[0] && iniCell.value <= pricing[1]) heap.add(iniCell);
+        // create a list of unexplored nodes, what will be used to track all neighbors of current cell
+        unexplored = new ArrayDeque<int[]>(nCells);
+        unexplored.addFirst(new int[]{start[0], start[1]});
+        // track which nodes were visited so they wont be visited twice
+        visitedDistance = new HashMap<Integer, Integer>(nCells);
+        visitedDistance.put(start[0]*grid[0].length + start[1], 0);
+        ArrayList<List<Integer>> result = new ArrayList<List<Integer>>(k);
+        while (!unexplored.isEmpty()){
+            // remove the last cell from the list in constant time and mark this cell as visited
+            int[] cur = unexplored.poll();
+            // ensure that unvisited cells not walls and respect grid boundries
+            // (int row, int col, int rank, byte pos, int[] pricing)
+            visitNeighbor(grid, cur[0], cur[1], (byte)1, pricing);
+            visitNeighbor(grid, cur[0], cur[1], (byte)2, pricing);
+            visitNeighbor(grid, cur[0], cur[1], (byte)3, pricing);
+            visitNeighbor(grid, cur[0], cur[1], (byte)4, pricing);
+        }
+        for (int i=0; i<k; ++i){
+            Cell head = heap.poll();
+            if (head != null) result.add(new ArrayList<Integer>(2){{
+                    add(head.pos[0]); 
+                    add(head.pos[1]);
+             }});
+         }
+         return result;
+    }
+}
+#+end_src
+
+  
+#+begin_src java
+class Solution {
+    class Item implements Comparable<Item> {
+        int dist, price, row, col;
+        
+        Item(int dist, int price, int row, int col) {
+            this.dist = dist;
+            this.price = price;
+            this.row = row;
+            this.col = col;
+        }
+        
+        public int compareTo(Item other) {
+            if (dist == other.dist) {
+                if (price == other.price) {
+                    if (row == other.row) {
+                        return col - other.col;
+                    }
+                    return row - other.row;
+                }
+                return price - other.price;
+            }
+            return dist - other.dist;
+        }
+    }
+    
+    class Cell {
+        int r, c;
+        
+        Cell(int r, int c) {
+            this.r = r;
+            this.c = c;
+        }
+    }
+    
+    final int[] dr = new int[] {-1, 0, 1, 0};
+    final int[] dc = new int[] {0, 1, 0, -1};
+    
+    public List<List<Integer>> highestRankedKItems(int[][] grid, int[] pricing, int[] start, int k) {
+        int n = grid.length, m = grid[0].length;
+        int[][] dist = new int[n][m];
+        for (int i=0; i<n; i++)
+            for (int j=0; j<m; j++)
+                dist[i][j] = -1;
+        Queue<Cell> que = new LinkedList<>();
+        dist[start[0]][start[1]] = 0;
+        que.offer(new Cell(start[0], start[1]));
+        ArrayList<Item> list = new ArrayList<>();
+        while (!que.isEmpty()) {
+            Cell cur = que.poll();
+            int r = cur.r, c = cur.c;
+            if (pricing[0] <= grid[r][c] && grid[r][c] <= pricing[1])
+                list.add(new Item(dist[r][c], grid[r][c], r, c));
+            for (int i=0; i<4; i++) {
+                int nr = r + dr[i], nc = c + dc[i];
+                if (0 <= nr && nr < n && 0 <= nc && nc < m && grid[nr][nc] != 0 && dist[nr][nc] == -1) {
+                    dist[nr][nc] = dist[r][c] + 1;
+                    que.offer(new Cell(nr, nc));
+                }
+            }
+        }
+        Collections.sort(list);
+        List<List<Integer>> ret = new ArrayList<>();
+        for (int i=0; i<Math.min(list.size(), k); i++)
+            ret.add(Arrays.asList(list.get(i).row, list.get(i).col));
+        return ret;
+    }
+}
+#+end_src
+

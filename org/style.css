@@ -111,6 +111,7 @@ ul.contact li {
   display: block;
 }
 .org-src-container {
+    border: 0.1em solid whitesmoke;
     -webkit-overflow-scrolling: touch;
     overflow-y: scroll;
 }
