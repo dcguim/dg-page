@@ -1,0 +1,10 @@
+#+TITLE: knowledge repo
+#+SUBTITLE: Mathematics Topics
+#+INCLUDE: "../navbar.html" export html
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+#+HEADER: :results output silent :headers '("\\usepackage{tikz}")
+
+* Topics 
+- [[file:faulhaberseries.html][Faulhaber's series]]
+
