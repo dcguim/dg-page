@@ -95,6 +95,23 @@ $i-wt[j]$.
        }
    }
 #+end_src
+One way of seeing this problem is as a recursive problem which, at some point in
+time, the current player attempts all the unpicked numbers, and we store this
+choice in a state and pass it to the next iteration along with the rest of the
+sum, until finally the sum is smaller than 0. As the state is just a sequence
+of subsequent numbers which were or not picked, we can represent as a boolean
+array. Notice also the symmetry in this problem, assume the `desiredTotal = 20`
+first player could pick 1, the second 5, and then 10, or the first player could
+pick 10, the second 1, and then first 5, regardless of who choose which number
+all we care about is that the `desiredTotal = 4` and the picked numbers were 1, 5
+and 10, so there is no need of tracking each players choice, and therefore, the
+solutions are overlapping, hence, we also need a memory to map states to boolean.
+
+If we negate the value of the next recurrent call we are somewhat programming the
+idea that if in the next call it returns true, than the previous player lost.
+In the worst case this solution will generate all the $2^{maxChoosableInteger}$
+combinations, therefore $O(2^{n})$
+
 * LeetCode: [[https://leetcode.com/problems/super-egg-drop/][Super Egg Drop - 887]]
 #+begin_src java
 class Solution {

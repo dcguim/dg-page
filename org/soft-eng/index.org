@@ -7,8 +7,13 @@
 
 * Theoretical
 - [[file:bigO.html][Big O Notation]]
+** Graphs
 - [[file:graphs.html][Graphs]]
-  
+# - Spanning Trees
+# - Matching
+# - Network Flow
+# - Routing
+# - Shortest Path
 * Programming problems
 ** Data Structures
 - [[file:arraystring.html][Arrays and strings]]

@@ -180,7 +180,7 @@ the values back to the queue and updates the value of the existing key. Notice,
 it will take $\le n$ times to find the key plus $\le n$ times to put it back.
 Therefore, the $set$ will also take $O(n)$.
 
-* LeetCode
+* LeetCode: [[https://leetcode.com/problems/k-highest-ranked-items-within-a-price-range/][K Highest Ranked Items Within a Price Range - 2146]]
 #+begin_src java
 class Solution {
     class Cell{
@@ -256,75 +256,40 @@ class Solution {
     }
 }
 #+end_src
+  
+  There are three main data structures used, a priority queue, or heap,
+  that keeps in the head the element with the highest rank, notice that the criteria
+  to compare two elements in the heap are exactly the one described, notice that
+  the starting cell will be considered if it is between the provided price range.
+  Next, we create a queue $unexplored$ which keeps all cells visited, by visit
+  it is meant that we calculate it's distance to starting node and add to the
+  heap if the cell value is in the price range. There is also a hashmap which
+  maps every cell in the board to the distance from the starting cell, this hashmap
+  is updated by incrementing the distance of the parent by 1. It seems like a lot
+  of complex data structures, but they are all essential to the implementation
+  the only possible modification would be to transform the priority queue into
+  a simple list that is later sorted, although a list/array is a simpler structure
+  than a heap, it seems we would only be shifting the complexity of sorting from
+  the the main execution of the algorithm when we visit a new cell and add to the
+  heap to the end when we would need to sort the list with the the criteria provided.
+  Therefore the priority list is kept, and the best running solutions in leet code
+  also seemed to have similar data structures. In this case, the space complexity
+  will be $O(n)$ as we have three data structures with at most $n$ elements, where
+  $n$ is the amount of cells in the board.
 
   
-#+begin_src java
-class Solution {
-    class Item implements Comparable<Item> {
-        int dist, price, row, col;
-        
-        Item(int dist, int price, int row, int col) {
-            this.dist = dist;
-            this.price = price;
-            this.row = row;
-            this.col = col;
-        }
-        
-        public int compareTo(Item other) {
-            if (dist == other.dist) {
-                if (price == other.price) {
-                    if (row == other.row) {
-                        return col - other.col;
-                    }
-                    return row - other.row;
-                }
-                return price - other.price;
-            }
-            return dist - other.dist;
-        }
-    }
-    
-    class Cell {
-        int r, c;
-        
-        Cell(int r, int c) {
-            this.r = r;
-            this.c = c;
-        }
-    }
-    
-    final int[] dr = new int[] {-1, 0, 1, 0};
-    final int[] dc = new int[] {0, 1, 0, -1};
-    
-    public List<List<Integer>> highestRankedKItems(int[][] grid, int[] pricing, int[] start, int k) {
-        int n = grid.length, m = grid[0].length;
-        int[][] dist = new int[n][m];
-        for (int i=0; i<n; i++)
-            for (int j=0; j<m; j++)
-                dist[i][j] = -1;
-        Queue<Cell> que = new LinkedList<>();
-        dist[start[0]][start[1]] = 0;
-        que.offer(new Cell(start[0], start[1]));
-        ArrayList<Item> list = new ArrayList<>();
-        while (!que.isEmpty()) {
-            Cell cur = que.poll();
-            int r = cur.r, c = cur.c;
-            if (pricing[0] <= grid[r][c] && grid[r][c] <= pricing[1])
-                list.add(new Item(dist[r][c], grid[r][c], r, c));
-            for (int i=0; i<4; i++) {
-                int nr = r + dr[i], nc = c + dc[i];
-                if (0 <= nr && nr < n && 0 <= nc && nc < m && grid[nr][nc] != 0 && dist[nr][nc] == -1) {
-                    dist[nr][nc] = dist[r][c] + 1;
-                    que.offer(new Cell(nr, nc));
-                }
-            }
-        }
-        Collections.sort(list);
-        List<List<Integer>> ret = new ArrayList<>();
-        for (int i=0; i<Math.min(list.size(), k); i++)
-            ret.add(Arrays.asList(list.get(i).row, list.get(i).col));
-        return ret;
-    }
-}
-#+end_src
-
+  The main while loop simply visit all the potential 4 neighboring cells, those
+  cells will be added to the $unexplored$ queue, therefore this loop will run
+  for every cell in the board. Let's now examine the complexity of $visitNeighbor()$
+  method. It will first check that the neighbor cell respect the grid's dimensions
+  and that it was not visited yet, this is done by checking if the distance to
+  to the start node is already calculated, i.e. if there is already a key in the
+  $visitedDistance$ hashmap, this check is done in $O(1)$. Moreover, adding to an
+  element to ArrayDeque run in amortized constant time, however, as the ArrayDeque
+  has a constant $nCells$ size it will also run in constant time. Moreover the
+  $get()$ and $put()$ operations in $visitedDistance$ also run in constant time.
+  Lastly, a cell will be potentially added to the heap, this will take $O(log(n))$
+  as we can just add the element $n$ as a leaf and loop while the $parent(n) < n$
+  pushing the new added node up the tree until necessary. The mentioned complexity
+  is due to the fact the height of the tree has at most size $log_2(n)$. Hence,
+  the overall time complexity is O(nlog(n)).
