@@ -6,12 +6,10 @@
 #+HEADER: :results output silent :headers '("\\usepackage{tikz}")
 
 * Databases
-  [[file:psqlgettingstarted.html][Getting Started with PostgreSQL]]
-
+-  [[file:psqlgettingstarted.html][Getting Started with PostgreSQL]]
 * Kafka
 - [[file:kafkaconfig.html][Configuring Kafka for production]]
 - [[file:kafkaprogram.html][Interacting with Kafka programatically]]
-  
 * Cloud Services 
 - [[file:bigquery.html][Exploring GCP's BigQuery and Dataflow]]
 
