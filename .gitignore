@@ -33,6 +33,8 @@ MANIFEST
 # project stuff
 static/*
 resources/*
+*.png
+linalg/*
 
 # emacs stuff
 .packages/*
