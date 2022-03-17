@@ -1,5 +1,10 @@
-https://qiita.com/yunarsoa/items/ed6c27b8655ab55e46f9
-* Getting Started PostgreSQL
+#+TITLE: knowledge repo
+#+SUBTITLE: Data Engineering Topics
+#+INCLUDE: "../navbar.html" export html
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+
+* Getting Started with PostgreSQL
   Our goal here is to run PosgreSQL as a server for the purpose of practicing
   SQL. It is practical to install as a server so we can always fire postgres
   when needed on our terminal and run sql commands against a database. For this
