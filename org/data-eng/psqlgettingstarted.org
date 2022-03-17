@@ -1,0 +1,99 @@
+https://qiita.com/yunarsoa/items/ed6c27b8655ab55e46f9
+* Getting Started PostgreSQL
+  Our goal here is to run PosgreSQL as a server for the purpose of practicing
+  SQL. It is practical to install as a server so we can always fire postgres
+  when needed on our terminal and run sql commands against a database. For this
+  post we will load the northwind data to our database. We are using a Mac OS and
+  therefore we will use macports as our package manager.
+** Installing PostgreSQL with macports
+   The latest PostgreSQL version in the time I am writing this post is the
+   version 14. You can find the currently available versions with the following
+   command:
+   #+begin_src shell
+   port search --glob --name 'postgres*'`
+   #+end_src
+   To actually install the port of desired version use:
+   #+begin_src shell
+   sudo port install postgresqlXX postgresqlXX-server
+   #+end_src
+   You might also want to clean any log files created in the installation process
+   #+begin_src shell
+   sudo port clean postgresqlXX postgresqlXX-server
+   #+end_src
+   At the end of the installation the some instructions on how to proceed must be
+   shown in the your terminal display. It should instruct you to create a database
+   instance that is a directory that will hold your database, assign the ownership
+   to posgres user, as well as running some $initdb$ script as a postgres user.
+   However before copying and pasting these commands there are a few checks that
+   have to be done.
+** Initialize Client
+   List PostgreSQL Client packages with the following command and select the
+   version of choice, usually there is a $none$ version active, and therefore
+   it is necessary to explicitly select the desired version.
+   #+begin_src shell
+   port select --list postgresql
+   #+end_src
+   For selecting the desired version please run:
+   #+begin_src shell
+   sudo port select --set postgresql postgresql14
+   #+end_src
+   You can now run the previous command to ensure the correct version is active.
+   Next, let's look at the location which psql is installed with $which psql$.
+   It should be somewhere like $/opt/local/bin$. This information should be
+   enough to proceed to inializing the database as in the instructions provided
+   at installation.
+** Initialize Database
+    Create a dir to hold database files, use the same location as the $which psql$
+    returned by instead of creating this directory on the bin, create on the var
+    folder. It must already exist a $/opt/local/var/db/$ folder, let's now create
+    a folder with your name of choice:
+    #+begin_src sql
+    sudo mkdir -p /opt/local/var/db/postgresql14/mytestdb
+    #+end_src
+    Set the ownership of the directory to a special user named 'postgres':
+    #+begin_src shell
+    sudo chown postgres:postgres /opt/local/var/db/postgresql14/testdb
+    #+end_src
+    Finally, initialize the database by running the $initdb$ script and passing
+    as a parameter the created directory.
+    #+begin_src shell
+    sudo su postgres -c 'cd /opt/local/var/db/postgresql14 &&
+    /opt/local/lib/postgresql14/bin/initdb -D /opt/local/var/db/postgresql14/testdb'
+    #+end_src
+    Initialize your /testdb/ with the following command:
+    `cd /opt/local/`
+    `sudo su postgres -c '/opt/local/lib/postgresql96/bin/initdb -D /opt/local/var/db/postgresql96/testdb'
+    Following message should appear:
+    "Success. You can now start the database server using:"
+    Again, let's not follow the instructions blindly. Let's setup a bit the
+    environment, we probably want to start the database server with a shorter command
+    than the command provided in the dipsplay. In fact, the following command
+    start the database server when the system starts.
+    #+begin_src shell
+    sudo port load postgresql14-server
+    #+end_src
+** Start postgres database
+    It is not possible to run the database as sudo, $pg_ctl$ command actually
+    required unprivileged access. Hence, log in as postgres user:
+    #+begin_src shell
+    sudo -u postgres $SHELL
+    #+end_src
+
+    Start postgres database with providing the database directory created.
+    #+begin_src shell
+    pg_ctl -D /opt/local/var/db/postgresql14/testdb start 
+    #+end_src
+    The final message "server started" should appear on display. Now the command
+    $psql$ can be run to fire postgres.
+** Load Data
+   The northwind database dump is a well known open database and can be found in
+   several places on the internet, one possible place is this [[https://relational.fit.cvut.cz/dataset/Northwind][website]]. Create a
+   database with the psql console.
+   #+begin_src sql
+   psql=# CREATE DATABASE northwind;
+   #+end_src
+   Load northwind data simply get back to the console and run the following command
+   providing the downloaded /data.sql/.
+   #+begin_src shell
+   psql northwind < data.sql
+   #+end_src
