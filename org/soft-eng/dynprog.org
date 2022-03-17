@@ -204,7 +204,7 @@ That means that the middle column is concretely $dp[2]$ if we had started from
 \[dp[3]_n = \sum \dfrac{n(n+1)}{2} = \dfrac{1}{2}\sum n^2 + \dfrac{1}{2}\sum n\]
 
 To solve $\dfrac{1}{2}\sum n^2$ we need to draw some insight from the Faulhaber's
-formula, luckily, I have written another [[file:faulhaberseries.html][post]] about it.
+formula, luckily, I have written another [[file:../math/faulhaberseries.html][post]] about it.
 
 The answer is that we always a polynomial with the order of the sum plus one that
 means in the order of $n^3$. As we will always add a new summation for each higher

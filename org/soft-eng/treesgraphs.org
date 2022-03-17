@@ -6,6 +6,71 @@
 #+LaTeX_HEADER: \usepackage{tikz} 
 #+LaTeX_HEADER: \usetikzlibrary{graphs, arrows.meta}
 
+
+* HackerRank: [[https://www.hackerrank.com/challenges/tree-level-order-traversal/problem?isFullScreen=true][Tree: Level Order Traversal]]
+#+begin_src java
+public static void levelOrder(Node root) {
+    Node cur;
+    ArrayDeque<Node> unexplored = new ArrayDeque<Node>();
+    unexplored.offer(root);
+    while (unexplored.size() > 0){
+        cur = unexplored.pollLast();
+        System.out.print(cur.data+ " ");
+        if (cur.left != null) unexplored.offerFirst(cur.left);
+        if (cur.right != null) unexplored.offerFirst(cur.right);
+    }
+}
+#+end_src
+
+* LeetCode: [[https://leetcode.com/problems/maximum-depth-of-binary-tree/][Maximum Depth of Binary Tree]]
+#+begin_src java
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode() {}
+ *     TreeNode(int val) { this.val = val; }
+ *     TreeNode(int val, TreeNode left, TreeNode right) {
+ *         this.val = val;
+ *         this.left = left;
+ *         this.right = right;
+ *     }
+ * }
+ */
+class Solution {
+    public class TreeNodeHeight{
+        TreeNode n;
+        int h;
+        public TreeNodeHeight (TreeNode node, int height){
+            this.n = node;
+            this.h = height;
+        }
+    }
+    public int maxDepth(TreeNode root) {
+        TreeNodeHeight cur;
+        int maxDepth = 0;
+        if (root == null) return 0;
+        ArrayDeque<TreeNodeHeight> visited = new ArrayDeque<TreeNodeHeight>();
+        visited.add(new TreeNodeHeight(root, 1));
+      	while (visited.size() > 0){
+            cur = visited.pollFirst();
+            if (cur.n.right == null && cur.n.left == null && cur.h > maxDepth){
+                maxDepth = cur.h;
+                continue;
+            }
+            if (cur.n.right != null){
+                visited.addFirst(new TreeNodeHeight(cur.n.right, cur.h+1));
+            }
+            if (cur.n.left != null){
+                visited.addFirst(new TreeNodeHeight(cur.n.left, cur.h+1));
+            }
+        }
+        return maxDepth;
+    }
+}
+#+end_src
 * LeetCode: [[https://leetcode.com/problems/frog-position-after-t-seconds/][Frog Position After T Seconds - 1377]]
 
 #+begin_src java
@@ -409,3 +474,162 @@ while loop would take at most $O(kn)$ which is a pretty high upper bound, as usu
 this algorithm would run $O(m)$ by looking at every city and all it's incident
 edges, i.e. by going through all the edges present in the graph. Therefore, amortized
 linear time on the amount of flights.
+
+* GeeksForGeeks: [[https://practice.geeksforgeeks.org/problems/implementing-dijkstra-set-1-adjacency-matrix/1][Implementing Dijkstra Algorithm]]
+  
+#+begin_src java
+ class Solution
+ {
+     //Function to find the shortest distance of all the vertices
+     //from the source vertex S.
+     static int[] dijkstra(int V, ArrayList<ArrayList<ArrayList<Integer>>> adj, int S)
+     {
+         int nId, nWe, tWe;
+         int[] cur = new int[]{S, 0}, res = new int[V];
+         for (int i=0; i<V; i++) res[i] = Integer.MAX_VALUE;
+         res[S] = 0;
+         Boolean[] closed = new Boolean[V];
+         Arrays.fill(closed, false);
+         // heap of int[2] where int[0] is the node id and int[2] the distance from S
+         PriorityQueue<int[]> unexplored = new PriorityQueue<int[]>(V, (v1,v2) -> v1[1] -v2[1]);
+         unexplored.add(new int[]{S, 0});
+         while (unexplored.size() > 0){
+             cur = unexplored.poll();
+             if (closed[cur[0]] == true) continue;
+             closed[cur[0]] = true;
+             for (ArrayList<Integer> n: adj.get(cur[0])){
+                 nId = n.get(0);
+                 nWe = n.get(1);
+                 tWe = res[cur[0]] + nWe;
+                 if (!closed[nId] && res[nId] > tWe){
+                     // add nId to the heap altough it could already exist
+                     unexplored.offer(new int[]{nId, tWe});
+                     res[nId] = tWe;
+                 }
+             }
+         }
+         return res;
+     }
+ }
+ #+end_src
+
+* HackerRank: [[https://www.hackerrank.com/challenges/ctci-bfs-shortest-reach/problem?isFullScreen=true][BFS: Shortest Reach in a Graph]]
+#+begin_src java
+  public class Solution {
+
+      public static void shortestReach(LinkedList<Integer>[] adj, int src){
+	  int n, d, cur;
+	  ArrayDeque<Integer> unvisited = new ArrayDeque<Integer>(adj.length);
+	  unvisited.add(src);
+	  // every node is unreachable at first
+	  HashMap<Integer, Integer> distance = new HashMap<>(adj.length);
+	  for (int i = 1; i<adj.length; ++i) distance.put(i, -1);
+	  distance.put(src, 0);
+	  while (unvisited.size() > 0){
+	      cur=unvisited.pollLast();
+	      for(int i=0; i<adj[cur].size(); ++i){
+		  n = adj[cur].get(i);
+		  d = distance.get(n);
+		  // if the neighbor n was unvisited the first time 
+		  // it is updated will also be the shortest distance in BFS
+		  if (d == -1){
+		      distance.put(n, distance.get(cur)+ 6);
+		      unvisited.addFirst(n);
+		  }
+	      }
+	  }
+	  for (int i = 1; i<adj.length; ++i) if (i!=src) System.out.print(distance.get(i)+" ");
+	  System.out.println();
+      }
+      public static void main(String[] args) throws IOException {
+	  BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+	  int qs = Integer.parseInt(bufferedReader.readLine().trim());
+	  while (qs > 0){
+	      String[] nm = bufferedReader.readLine().trim().split(" ");
+	      int n = Integer.parseInt(nm[0]);
+	      int m = Integer.parseInt(nm[1]);
+	      // init a linked list
+	      LinkedList<Integer> graph[] = new LinkedList[n+1];
+	      for (int i = 1; i<n+1; ++i) graph[i] = new LinkedList<Integer>();
+	      // read the next edges
+	      for (int i = 0; i<m; ++i){
+		 String[] e = bufferedReader.readLine().trim().split(" ");
+		 int e0 = Integer.parseInt(e[0]);
+		 int e1 = Integer.parseInt(e[1]);
+		 graph[e0].add(e1);
+		 graph[e1].add(e0);
+	      }
+	      int src = Integer.parseInt(bufferedReader.readLine().trim());
+	      shortestReach(graph, src);
+	      qs -= 1;
+	  }
+      }
+  }
+#+end_src
+
+* HackerRank: [[https://www.hackerrank.com/challenges/swap-nodes-algo/problem?isFullScreen=true][Swap Nodes]]
+#+begin_src java
+class Result {
+/*
+ * Complete the 'swapNodes' function below.
+ *
+ * The function is expected to return a 2D_INTEGER_ARRAY.
+ * The function accepts following parameters:
+ *  1. 2D_INTEGER_ARRAY indexes
+ *  2. INTEGER_ARRAY queries
+ */
+public static int getHeight(List<List<Integer>> indexes, Integer node){
+    if (node == -1) return 0;
+    return Math.max(getHeight(indexes, indexes.get(node-1).get(0)), 
+                    getHeight(indexes, indexes.get(node-1).get(1))) + 1;
+}
+public static void getRootsAtK(ArrayList<Integer> res, List<List<Integer>> indexes, Integer k, Integer node){
+    if (node == -1) return;
+    else if (k == 1){
+        res.add(node);
+        return;
+    }
+    getRootsAtK(res, indexes, k-1, indexes.get(node-1).get(0));
+    getRootsAtK(res, indexes, k-1, indexes.get(node-1).get(1));
+    return;
+}
+public static List<Integer> inOrderTraverse(List<Integer> res, List<List<Integer>> indexes, int node){
+    if (node == -1) return null;
+    inOrderTraverse(res, indexes, indexes.get(node-1).get(0));
+    res.add(node);
+    inOrderTraverse(res, indexes, indexes.get(node-1).get(1));
+    return res;
+}
+public static void swap (List<List<Integer>> indexes, List<Integer> pair, int index){
+    indexes.set(index, new ArrayList<Integer>(){{
+        add(pair.get(1));
+        add(pair.get(0));
+    }});
+}
+public static List<List<Integer>> swapNodes(int n, List<List<Integer>> indexes, List<Integer> queries) {
+    int height = getHeight(indexes, 1);
+    ArrayList<Integer> rootsK = new ArrayList<Integer>(n);
+    ArrayList<List<Integer>> res = new  ArrayList<List<Integer>>(queries.size());
+    for (int i=0; i< queries.size(); i++){
+        int k = queries.get(i);
+        int count = k;
+        res.add(new ArrayList<Integer>(n));
+        while(k < height){
+            rootsK.clear();
+            getRootsAtK(rootsK, indexes, k, 1);
+            // for every node in height k
+            for (Integer node : rootsK){
+                // find left and right subtrees of k
+                List<Integer> pair = indexes.get(node-1);
+                // swap tree
+                if (pair.get(0) != -1 || pair.get(1) != -1) swap(indexes, pair, node-1);
+            }
+            k +=count;
+        }
+        // transform tree to 1d array
+        inOrderTraverse(res.get(res.size()-1), indexes, 1);
+    }
+    return res;
+    }
+}
+#+end_src

@@ -54,6 +54,33 @@ a characters one by one, and the $substring$ method taking also $O(n)$ for
 creating a copy of the original $text$ string. Therefore the complexity is $O(n)$
 with a $2p$ constant.
 
+* HackerRank: [[https://www.hackerrank.com/challenges/balanced-brackets/problem?isFullScreen=true][Balanced Brackets]]
+#+begin_src java
+    public static char closingBracket(char opening){
+        switch (opening) {
+            case '(': return ')';
+            case '[': return ']';
+            case '{': return '}';
+        }
+        return ' ';
+    }
+    public static String isBalanced(String s) {
+        int i = 0;
+        while (i < s.length()-1){
+            System.out.println(s);
+            if (closingBracket(s.charAt(i)) == s.charAt(i+1)){
+                String sLeft = (i > 0) ? s.substring(0, i): "";
+                String sRight = ((i+2) < s.length()) ? s.substring(i+2, s.length()): "";
+                s = sLeft+sRight;
+                i = Math.max(i-1, 0);
+            } else{
+                i+=1;
+            }
+        }
+        return (s.length() == 0) ? "YES": "NO";
+    }
+}
+#+end_src
 * GeeksForGeeks: [[https://practice.geeksforgeeks.org/problems/stock-buy-and-sell-1587115621/1/][Stock buy and sell]]
 #+begin_src java
 class Solution{
