@@ -5,6 +5,9 @@
 #+OPTIONS: num:nil
 #+HEADER: :results output silent :headers '("\\usepackage{tikz}")
 
+* Databases
+  [[file:psqlgettingstarted.html][Getting Started with PostgreSQL]]
+
 * Kafka
 - [[file:kafkaconfig.html][Configuring Kafka for production]]
 - [[file:kafkaprogram.html][Interacting with Kafka programatically]]
