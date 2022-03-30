@@ -32,7 +32,8 @@
 (org-babel-do-load-languages
  'org-babel-load-languages '((latex . t)
 			     (java . t)))
-
+;; automatically evaluate code blocks without asking
+(setq org-confirm-babel-evaluate nil)
 ;; fix problem with org-html-publish-to-html latex pictures
 (with-eval-after-load 'org
 (defun org--get-display-dpi ()
