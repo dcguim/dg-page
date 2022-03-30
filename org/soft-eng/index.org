@@ -5,10 +5,11 @@
 #+OPTIONS: num:nil
 #+LaTeX_HEADER: \usepackage{tikz}
 
-* Theoretical
+* Theory
+** Complexity
 - [[file:bigO.html][Big O Notation]]
 ** Graphs
-- [[file:graphs.html][Graphs]]
+- [[file:graphs.html][Advanced graph topics]]
 # - Spanning Trees
 # - Matching
 # - Network Flow
