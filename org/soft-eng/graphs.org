@@ -79,72 +79,142 @@
   edges. Therefore, for trees $O(e^2)$ is better, while for strongly connected
   graphs $O(n^3)$ is.
 
-** Bipartiteness
-   A bipartite graph is one which all of it's nodes $N$ can be divided into sets
-   $A$ and $B$ such that each node in $A$ has a neighbor in $B$ and vice versa.
-   Not every graph can be organized in such way, it's possible that for a graph
-   $G$ to have one of it's edges connect nodes from $A$ to $A$. But what
-   characteristic this graph must have to not be bipartite?
+* Heaps
+  Heaps are balanced binary trees that such that the parent has always the min or max
+  of all it's descendents. Balanced or height-balanced binary trees are nearly complete trees
+  that keep the height of every node's left and right branch balanced, i.e. with
+  equal or difference of 1. One of the benefits of balanced trees is it's height
+  is $log(n)$ on it's the size, and so takes $log(n)$ to go from the root to a leaf.
+  Such trees are balanced they can be represented as an array, of elements:
+  $${13,11,9,8,10,6,5,7,4,3,10}$$
 
-   Imagine we have a linear path $p_{1-x}$ that connects node 1 to node $x$, and
-   we are trying to ensure bipartiteness , if $n_1$ is in $A$, then $n_2$ is
-   necessarily in $B$, and node $n_3$ in $A$, and so forth. If any node
-   $n_{2*i+1}$ for $i>1$ has an edge back to $n_1$ then $G$ is not bipartite. That
-   is, if there is an odd-sized cycle.
-
-   To check bipartiteness in a single connected component one could just use BFS
-   and add assign each node in odd layers to $A$ and those in even layers $B$,
-   on the end one could just check for each edge in $G$ if it's ends are in
-   different sets. If a node in $L_{2i}$ has an edge to any node in $L_{2j}$ or
-   if a node in $L_{2i+1}$ has an edge to a node in $L_{2j+1}$ then there is an
-   odd-sized cycle and hence bipartiteness cannot be ensured. We can also attempt
-   to prove that the BFS algorithm described above is correct.
-
-   *proof:* Imagine there is an odd cycle and the BFS algorithm described above
-   claims the graph is bipartite, let's assume w.l.o.g the cycle loops from
-   the root $n_i \in L_1$ until $n_j \in L_2$ then back to $n_i$. There is a
-   property of BFS trees $T$ which states that every pair of nodes $(x,y)$
-   which have an edge between themselves are either in adjacent layers or in the
-   same layer in a BFS tree. If for every edge in the odd-sized loop the nodes
-   are in adjacent edges then the loop cannot be odd-sized. To check this property
-   let's pick the node furthest away from $n_i$, $n_h \in L_h$. If $n_h$ only
-   has nodes with adjacent edges and is the highest node, then it must make the
-   way back to $n_j$ through an edge in $L_{h-1}$ yielding a loop of size
-   $h+1+h-1 = 2h$ which by contradiction is not an odd-sized loop. Therefore
-   an odd-sized loop node must have an edge between nodes in the same layer, hence,
-   not bipartite as those nodes would be in the same set.
+  where the $heap[i]$'s:
   
-** Topological Ordering
+  + parent is $heap[\lfloor i/2 \rfloor]$,
+  + left node is $heap[2i]$, and
+  + right node is $heap[2i+1]$
+
+#+begin_src latex :exports results :results raw file :file simpleheap.png :output-dir ../img
+  \resizebox{0.5\textwidth}{!}{%
+    \begin{tikzpicture}[scale=1,nodes={draw, circle}, ->]
+      \node{13}
+      child { node{11}
+	child { node {8}
+	 child { node {4} }
+	 child { node {3} }
+	 }
+	child[missing]
+	child { node {10}
+	child { node {10} }
+        child[missing] 
+      }
+      }
+      child[missing]
+      child[missing]
+      child { node {9}
+	child { node {6} }
+	child { node {5} }
+      };
+   \end{tikzpicture}
+       }%
+#+end_src
+
+#+RESULTS:
+[[file:../img/simpleheap.png]]
+
+  As we can see in the structure of this max-heap, the largest value is at the root
+  and the smallest value is a leaf, 3. Notice that a child can also have the same
+  value as it's parent, such as in the case of 10. Notice that the array representing
+  the heap, must not necessarily be sorted. However, a sorted array is necessarily
+  a heap, as it respects the heap property of:
+  
+  //""...the parent has always the min or max of all it's descendents.""//
+  
+  Imagine a sorted array representing a min-heap, then for every node $heap[i]$
+  all it's descendents which are at positions $\ge 2i$, and have by definition bigger
+  values than $heap[i]$, likewise all ascendants are at positions $\le i/2$.
+  
+  We can also check that it takes at most $\lfloor log_2(10)\rfloor = 3$ iterations
+  from any path from the root to a leaf. To preserve a heap under change we must
+  be able to preserve the property mentioned above. Imagine we were given the
+  following array:
+  $${13,7,9,8,10,6,5,7,4,3,10}$$
+  
+  that is the heap above but with the node with value 11 replaced by a node with
+  value 7. To correct this behaviour, and put the value 7 in it's correct position
+  there is a procedure known as "max/min-heapify", a recursive call that find the
+  $max(heap[2],heap[4],heap[5]) = heap[5]$, switches the value of $heap[5] = 10$
+  with $heap[2] = 7$, and repeat to fing the "$max(heap[5],heap[10]) = heap[10]$"
+  and further switch the values of $heap[10] = 10$ and $heap[5] = 7$. So finally,
+  $heap[10] = 7$ and the node with value 7 will be leaf.
+
+
+* Bipartiteness
+  A bipartite graph is one which all of it's nodes $N$ can be divided into sets
+  $A$ and $B$ such that each node in $A$ has a neighbor in $B$ and vice versa.
+  Not every graph can be organized in such way, it's possible that for a graph
+  $G$ to have one of it's edges connect nodes from $A$ to $A$. But what
+  characteristic this graph must have to not be bipartite?
+  
+  Imagine we have a linear path $p_{1-x}$ that connects node 1 to node $x$, and
+  we are trying to ensure bipartiteness , if $n_1$ is in $A$, then $n_2$ is
+  necessarily in $B$, and node $n_3$ in $A$, and so forth. If any node
+  $n_{2*i+1}$ for $i>1$ has an edge back to $n_1$ then $G$ is not bipartite. That
+  is, if there is an odd-sized cycle.
+  
+  To check bipartiteness in a single connected component one could just use BFS
+  and add assign each node in odd layers to $A$ and those in even layers $B$,
+  on the end one could just check for each edge in $G$ if it's ends are in
+  different sets. If a node in $L_{2i}$ has an edge to any node in $L_{2j}$ or
+  if a node in $L_{2i+1}$ has an edge to a node in $L_{2j+1}$ then there is an
+  odd-sized cycle and hence bipartiteness cannot be ensured. We can also attempt
+  to prove that the BFS algorithm described above is correct.
+  
+  *proof:* Imagine there is an odd cycle and the BFS algorithm described above
+  claims the graph is bipartite, let's assume w.l.o.g the cycle loops from
+  the root $n_i \in L_1$ until $n_j \in L_2$ then back to $n_i$. There is a
+  property of BFS trees $T$ which states that every pair of nodes $(x,y)$
+  which have an edge between themselves are either in adjacent layers or in the
+  same layer in a BFS tree. If for every edge in the odd-sized loop the nodes
+  are in adjacent edges then the loop cannot be odd-sized. To check this property
+  let's pick the node furthest away from $n_i$, $n_h \in L_h$. If $n_h$ only
+  has nodes with adjacent edges and is the highest node, then it must make the
+  way back to $n_j$ through an edge in $L_{h-1}$ yielding a loop of size
+  $h+1+h-1 = 2h$ which by contradiction is not an odd-sized loop. Therefore
+  an odd-sized loop node must have an edge between nodes in the same layer, hence,
+  not bipartite as those nodes would be in the same set.
+  
+* Topological Ordering
    
-   Before introducing the idea of topological ordering the meaning of a DAG must
-   be clear. A directed acyclical graph (DAG), as the name suggests is a directed
-   graph containing no cycles. The idea of a topological ordering is quite
-   useful in the context of /dependency networks/ to express the precedence relation
-   between nodes. For example, imagine we would like to express the dependencies
-   of a particular software package, if we would like to install `pandas` python
-   library then we first need to install pytz, python-dateutil and numpy. However,
-   python-dateutil depends on six. And so clearly there is an implicit order
-   of which packages should be installed so we could correctly install pandas, this
-   order can be represented by an directed edge going from the dependency to the
-   package we would like to install, so in the case of pandas: [pytz, pandas],
-   [python-dateutil, pandas], [six, python-dateutil], and [numpy, pandas].
-
-
-   A topological ordering or sort is a list of nodes in a graph such that
-   if we were to install every package in the given order than we would be able
-   to all the packages. Or more generally, all an order of nodes such that all
-   dependency relations are satisfied. Assuming there are nodes $1,... ,n$ than
-   the topological sort would have to enforce that for each $(v_i, v_j)$ that
-   $i<j$. That is, all edges point forward and never back:
+  Before introducing the idea of topological ordering the meaning of a DAG must
+  be clear. A directed acyclical graph (DAG), as the name suggests is a directed
+  graph containing no cycles. The idea of a topological ordering is quite
+  useful in the context of /dependency networks/ to express the precedence relation
+  between nodes. For example, imagine we would like to express the dependencies
+  of a particular software package, if we would like to install pandas python
+  library then we first need to install pytz, python-dateutil and numpy. However,
+  python-dateutil depends on six. And so clearly there is an implicit order
+  of which packages should be installed so we could correctly install pandas, this
+  order can be represented by an directed edge going from the dependency to the
+  package we would like to install, so in the case of pandas: [pytz, pandas],
+  [python-dateutil, pandas], [six, python-dateutil], and [numpy, pandas].
+  
+  
+  A topological ordering or sort is a list of nodes in a graph such that
+  if we were to install every package in the given order than we would be able
+  to all the packages. Or more generally, all an order of nodes such that all
+  dependency relations are satisfied. Assuming there are nodes $1,... ,n$ than
+  the topological sort would have to enforce that for each $(v_i, v_j)$ that
+  $i < j$ . That is, all directed edges point forward and never backwards:
 
 #+begin_src latex :exports results :results raw file :file depgraph.png :output-dir ../img
   \resizebox{0.5\textwidth}{!}{%
     \begin{tikzpicture}[scale=1,samples=5000,nodes={}, ->]
-     \node[circle, draw, minimum size=1.2cm](n0) at (0,4) {six   };
-     \node[circle, draw, minimum size=1.2cm](n1) at (2,4) {date  };
-     \node[circle, draw, minimum size=1.2cm](n2) at (2,2) {pytz  };
-     \node[circle, draw, minimum size=1.2cm](n3) at (2,0) {numpy };
-     \node[circle, draw, minimum size=1.2cm](n4) at (6,2) {pandas};
+     \node[circle, draw, size=1cm](n0) at (0,4) {six   };
+     \node[circle, draw, size=1cm](n1) at (2,4) {date  };
+     \node[circle, draw, size=1cm](n2) at (2,2) {pytz  };
+     \node[circle, draw, size=1cm](n3) at (2,0) {numpy };
+     \node[circle, draw, size=1cm](n4) at (6,2) {pandas};
       \draw[to] (n0) -- (n1) node[none];
       \draw[to] (n1) -- (n4) node[none];
       \draw[to] (n2) -- (n4) node[none];
@@ -190,5 +260,105 @@
   of the nodes $i < i+1 < ... < i+n < i$ must exist in the provided ordering,
   which yields a contradiction as $i < i+n < i$.
 
+  We have proof for one direction, however, it is not obvious if the opposite direction
+  also holds, i.e.:
+
+  //""If G is a DAG, then G has a topological ordering.""//
+
+  By thinking on the extremes, the first node $n_s$ of the ordering must not have
+  any incomming edges, a root node, that is, there must exist no other node $n$ which leads to
+  $n_s$. Additionally, the last node $n_l$ of the ordering must have no outgoing edges
+  to a node $n_i$, otherwise, $i > s$ and hence $n_s$ is not the last node, that is a leaf.
+  Therefore we have to prove that:
+
+  //""If G is a DAG, then G has a root and G has a leaf""//
+
+  *proof:* let's first prove that G has a root, and assume that G is a DAG, and
+  that there for every $n$ in G, $n$ has an incomming node. Imagine we have a DAG
+  with $k$ nodes, and we pick any node $n_i$ of G, then this node must have an
+  incomming node $n_{i+1}. Now, $n_{i+1}$ must have an incomming node and it must
+  not be $n_i$, as G is a DAG, say the incomming node is $n_{i+2}$. This leads
+  us to be able to pick infinitely many nodes out of G, which are not previously
+  seen, which clearly contradicts the fact that G has a finite size $k$. Hence,
+  G must have a root. The same proof by contradiction can be applied by outgoing
+  edges of an initial node $n_i$, in fact, it doesn't really matter if we are
+  interested in outgoing or incomming edges, but the fact that we cannot draw infinte
+  outgoing unseen edges from G, when G is a DAG.
+  
+
+  It still left to show that being a DAG implies having a topological order. It
+  is possible to prove that if G is a DAG and has a root node than it also has a
+  topological ordering by induction on the size of the DAG.
+
+  *proof:* If G is a DAG with one or two nodes, it clearly has a topological order.
+  The induction hypothesis states that a DAG with $n$ nodes have a topological order.
+  Thus, it is left to prove in the induction step if a DAG G with $n+1$ nodes
+  also have such sort. G must have a root as shown before, so we have the first
+  node of the sort, the rest of the graph G-{$n_s$} has size $n$ and as mentioned
+  in the induction hypothesis has a topological order. Therefore, G has a topological
+  order.
+  
+* Red-Black Trees
+  Firstly, the concept of binary search trees must be clear, i.e. binary trees
+  which for each node, all of it's left descendents have values smaller than
+  the node's value and all it's right descendents have values bigger than the
+  node's values. This structure makes searching a node an $O(log n)$ operation,
+  as we are breaking the search space in half every time we compare the searched
+  value with the current node value.
+  Red-Black trees are binary search trees with an additional bit to represent
+  the color of the nodes, 0 or 1, red or black. There are five properties of such
+  trees.
+  1. Every node must have a color.
+  2. The root is also black.
+  3. Every leaf is black.
+  4. If a node is red, it's two descendents must be black.
+  5. For every path leaving a parent node until a leaf, there is the same count
+    of black nodes, ignoring the parent node values.
+
+Bellow there is an exaple of such tree:
+#+begin_src latex :exports results :results raw file :file simplerbtree.png :output-dir ../img
+  \resizebox{0.4\textwidth}{!}{%
+    \begin{tikzpicture}[scale=1,nodes={draw, circle}, ->]
+      \node{10}
+      child { node[red]{4}
+	child { node {3} child {node[black] {n}}}
+	child { node {6}
+	 child { node[red] {5} child {node[black] {n}}}
+	 child { node[red] {8} child {node[black] {n}}}
+         }
+      }
+      child[missing]
+      child { node {12}
+	child { node[red] {11} child {node[black] {n}}}
+	child { node[red] {14} child {node[black] {n}}}
+      };
+   \end{tikzpicture}
+       }%
+#+end_src
+
+#+RESULTS:
+[[file:../img/simplerbtree.png]]
+
+Notice that there is a node $n$, or nil, following each leaf. This special black
+node don't have any value, it's just a way to assure that all leaves are black,
+some prefer to draw two $n$ nodes as this is a binary tree, or a single node at
+the bottom where each leaf point to. 
+
+Some properties mentioned above implies height restrictions on black-red trees.
+Assume, that a "black height" $bh_n$ is the count of black nodes from a particular node
+$n$ to any of it's leaves. For instance the $bh_{10}=2$ as if we take a the path
+${10, 12, 11, n}$ there are two black nodes disregarding the color of $n_10$. As
+prop. 5 ensures that regardless of the path from $n_10$ the black count will be
+the same, you can quickly check this is the case, although it is not necessary.
+
+Let's prove that any node with a height $h$ has a black height $\ge h/2$.
+
+*proof:* When considering any path $p$ from a node $n_i$ to some leaf with height $h_p$
+then this path should contain either only black nodes, or a both red and black nodes. If
+there are red nodes, then at most, half of the path are consists of red nodes, given prop. 4.
+Therefore, the count of black nodes in any path $p$ is at least $h_p/2$.
+
 * References
   + Kleinberg, J., Tardos, &E. (2006). Algorithm Design. Addison Wesley.
+  + Cormen, T. H., & Cormen, T. H. (2001). Introduction to algorithms. Cambridge, Mass: MIT Press.
+
