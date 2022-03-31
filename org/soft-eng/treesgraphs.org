@@ -7,22 +7,7 @@
 #+LaTeX_HEADER: \usetikzlibrary{graphs, arrows.meta}
 
 
-* HackerRank: [[https://www.hackerrank.com/challenges/tree-level-order-traversal/problem?isFullScreen=true][Tree: Level Order Traversal]]
-#+begin_src java
-public static void levelOrder(Node root) {
-    Node cur;
-    ArrayDeque<Node> unexplored = new ArrayDeque<Node>();
-    unexplored.offer(root);
-    while (unexplored.size() > 0){
-        cur = unexplored.pollLast();
-        System.out.print(cur.data+ " ");
-        if (cur.left != null) unexplored.offerFirst(cur.left);
-        if (cur.right != null) unexplored.offerFirst(cur.right);
-    }
-}
-#+end_src
-
-* LeetCode: [[https://leetcode.com/problems/maximum-depth-of-binary-tree/][Maximum Depth of Binary Tree]]
+* LeetCode: [[https://leetcode.com/problems/binary-tree-inorder-traversal/][Binary Tree InOrder Traversal - 94]]
 #+begin_src java
 /**
  * Definition for a binary tree node.
@@ -40,6 +25,44 @@ public static void levelOrder(Node root) {
  * }
  */
 class Solution {
+    public List<Integer> inorderTraversal(TreeNode root) {
+	  ArrayList<Integer> res = new ArrayList<Integer>();
+	  if (root == null) return res;
+	  ArrayDeque<TreeNode> unexplored = new ArrayDeque<TreeNode>();
+	  TreeNode cur = root;
+	  do {
+	      while (cur != null){
+		  unexplored.offer(cur);
+		  cur = cur.left;
+	      }
+	      cur = unexplored.pollLast();
+	      res.add(cur.val);
+	      cur = cur.right;
+	  } while (!unexplored.isEmpty() || cur != null);
+	  return res;
+    }
+}
+#+end_src
+  This in-place solution uses a queue to store the left branches of each node and
+  to revisit them after the lower levels of the tree were parsed. The nested while
+  loop simply ensures that the next node to be explored will be a leaf, and will
+  have no left child, however, in the way to finding this leaf the intermediary
+  nodes are added to the queue. Moreover, the most recently entered node to the queue
+  is polled and added to the answer. The next node to be processed will be the right
+  child of the current node (the last node printed in the answer). When there is no
+  right child, this solution consumes the parent of the current node, followed by it's
+  right child.
+  
+  The queue $unexplored$ has potentially size $n$ as when the binary tree
+  is composed of a sequence of left childs of the root, all of the elements will
+  be added to the queue. In a balanced binary tree only $n/2$ will be added. Therefore
+  it consumed $O(n)$ space. The time complexity is $\theta(n)$, as the value of
+  $cur$ will assume the values of all of the nodes in the tree, for left branches
+  in the nested loop and for right branches in the outer loop.
+
+* LeetCode: [[https://leetcode.com/problems/maximum-depth-of-binary-tree/][Maximum Depth of Binary Tree]]
+#+begin_src java
+class Solution {
     public class TreeNodeHeight{
         TreeNode n;
         int h;
@@ -54,7 +77,7 @@ class Solution {
         if (root == null) return 0;
         ArrayDeque<TreeNodeHeight> visited = new ArrayDeque<TreeNodeHeight>();
         visited.add(new TreeNodeHeight(root, 1));
-      	while (visited.size() > 0){
+        while (visited.size() > 0){
             cur = visited.pollFirst();
             if (cur.n.right == null && cur.n.left == null && cur.h > maxDepth){
                 maxDepth = cur.h;
@@ -71,6 +94,26 @@ class Solution {
     }
 }
 #+end_src
+  The details of the methods and attributes of the $TreeNode$ class, are the same
+  as in the $Binary Tree InOrder Traversal$ problem, in the beginning of this page.
+  Notice that in order to define the height of a tree it is necessary to traverse
+  the whole tree, as if any path is not checked, the left out path could be the
+  one with the highest length. To understand how the tree rooted in $root$ is
+  traversed, let's look at the queue $visited$, it stores $TreeNodeHeight$ objects
+  which have a $TreeNode$ object and it's $height$ in the tree. The $TreeNodeHeight$
+  objects are removed from and added to the top of the list, therefore we are
+  traversing in a DFS fashion. When adding to the LIFO queue we define the height
+  as the child nodes as the height of the parent plus one. Whenever reaching a
+  leaf node, we have a candidate for the $maxDepth$, and we update it's value
+  if the current node's height is bigger.
+  In each iteration of the while loop it will visit the first node of the queue,
+  by adding it's left and right children and removing it from the queue, as the
+  input is a binary tree the visited node will never be revisited again. Moreover,
+  every node reachable from the $root$ node will be visited, therefore this solution
+  always takes $\Theta(n). In terms of space, the queue will contain at most all
+  of the $n$ nodes of the tree, depending on the shape of the binary tree, but
+  often less, so the space complexity is $O(n)$.
+
 * LeetCode: [[https://leetcode.com/problems/frog-position-after-t-seconds/][Frog Position After T Seconds - 1377]]
 
 #+begin_src java
@@ -112,29 +155,29 @@ class Solution {
 }
 #+end_src
 
-In the solution the graph was represented as a matrix, altough the input graphs
-in the test cases were sparse. One could argue that it would be better to transform
-into an adjacency list first for better performance, so an adjacency list implementation
-will be provided further on. In this case, we implemented a bfs solution, which
-at each step of the while loop, we expand the connected component defined by
-$layers$ with unvisited nodes neighboring nodes in $layers$. A normal queue is
-used to add and remove the nodes in the appropriate order, in FIFO fashion,
-although a double-sided queue ArrayDeque implementation is used.
-
-For each node $curr$ this implementation must look at every other node or edge
-(as we are dealing with trees), to verify if the edge is incident from $curr$.
-In each iteration we add the degree $d_{curr}$ nodes to the queue. So edges
-are added to the queue relatively fast around $log_{E(d_n)}(|N|)$ to the queue but
-they are consumed from the queue once at a time. Hence, $O(n^2)$ time.
-
-Regarding space, for each node, count the number or incident edges excluding it's
-parent, as the frog cannot jump back to a visited node, hence, the HashMap
-$childrenCounts$, mapping each node to the count of children. Additionally, we
-have the $parent$ HashMap, which represents the output BFS tree structure, and
-also allow one to easily trace back from the target node to the root. Hence, the
-space complexity is $\Omega(n)$.
-
-Now, let's use DFS with adjacency list instead.
+  In the solution the graph was represented as a matrix, altough the input graphs
+  in the test cases were sparse. One could argue that it would be better to transform
+  into an adjacency list first for better performance, so an adjacency list implementation
+  will be provided further on. In this case, we implemented a bfs solution, which
+  at each step of the while loop, we expand the connected component defined by
+  $layers$ with unvisited nodes neighboring nodes in $layers$. A normal queue is
+  used to add and remove the nodes in the appropriate order, in FIFO fashion,
+  although a double-sided queue ArrayDeque implementation is used.
+  
+  For each node $curr$ this implementation must look at every other node or edge
+  (as we are dealing with trees), to verify if the edge is incident from $curr$.
+  In each iteration we add the degree $d_{curr}$ nodes to the queue. So edges
+  are added to the queue relatively fast around $log_{E(d_n)}(|N|)$ to the queue but
+  they are consumed from the queue once at a time. Hence, $O(n^2)$ time.
+  
+  Regarding space, for each node, count the number or incident edges excluding it's
+  parent, as the frog cannot jump back to a visited node, hence, the HashMap
+  $childrenCounts$, mapping each node to the count of children. Additionally, we
+  have the $parent$ HashMap, which represents the output BFS tree structure, and
+  also allow one to easily trace back from the target node to the root. Hence, the
+  space complexity is $\Omega(n)$.
+  
+  Now, let's use DFS with adjacency list instead.
 
 #+begin_src java
 class Solution {
@@ -174,28 +217,28 @@ class Solution {
 }
 #+end_src
 
-Notice, that the main diference, is that the way the queue is being consumed. In
-this implementation, $visited$ is being consumed in a LIFO fashion. That means,
-the last $cur$ incident node $e$ inspected in the for loop will be the next to be
-removed from the $visited$ list.
-
-The latter implementation ran the test batch in LeetCode in 10ms while the first
-took 11ms, this small diference doensn't account to the time $n+m$ time required
-to initialize the adjecency list and to add all the edges from the matrix.
-Therefore, had the problem provided the graph as an adjacency list as input this
-diference would be bigger.
-
-The complexity here is not the same as before, previously for each node $u$ polled
-from the queue all the $n$ other nodes would be inspected in the matrix, where as
-here, only the neighbors will, i.e. $d_u$. As $\sum_{i\in N}d_i = 2|edges|$,
-hence the nested for loop accounts generally to $O(m)$, as operations such as
-removing from queue $O(1)$ and adding to a HashMap $O(1)$ are being done $n$ times
-the complexity of this algorithm is $O(n+m)$.
-
-Notice that despite the nested nature of the for and while loop, that there is
-no multiplication in the complexity of this algorithm, that because this
-algorithm doesn't loop through all edges for each node, in fact, each edge is
-visited twice, not $n$ times.
+  Notice, that the main diference, is that the way the queue is being consumed. In
+  this implementation, $visited$ is being consumed in a LIFO fashion. That means,
+  the last $cur$ incident node $e$ inspected in the for loop will be the next to be
+  removed from the $visited$ list.
+  
+  The latter implementation ran the test batch in LeetCode in 10ms while the first
+  took 11ms, this small diference doensn't account to the time $n+m$ time required
+  to initialize the adjecency list and to add all the edges from the matrix.
+  Therefore, had the problem provided the graph as an adjacency list as input this
+  diference would be bigger.
+  
+  The complexity here is not the same as before, previously for each node $u$ polled
+  from the queue all the $n$ other nodes would be inspected in the matrix, where as
+  here, only the neighbors will, i.e. $d_u$. As $\sum_{i\in N}d_i = 2|edges|$,
+  hence the nested for loop accounts generally to $O(m)$, as operations such as
+  removing from queue $O(1)$ and adding to a HashMap $O(1)$ are being done $n$ times
+  the complexity of this algorithm is $O(n+m)$.
+  
+  Notice that despite the nested nature of the for and while loop, that there is
+  no multiplication in the complexity of this algorithm, that because this
+  algorithm doesn't loop through all edges for each node, in fact, each edge is
+  visited twice, not $n$ times.
 
 
 * LeetCode: [[https://leetcode.com/problems/vertical-order-traversal-of-a-binary-tree][Vertical Order Traversal of a Binary Tree - 987]]
@@ -305,10 +348,10 @@ visited twice, not $n$ times.
   }
 #+end_src
 
-The first solution was to use depth-first search to traverse the tree and build
-the vertical order traversal list. Depth- as opposed to breadth- first search
-was selected as we keep the current row and column position being added in the
-answer list. Imagine we are traversing the following tree:
+  The first solution was to use depth-first search to traverse the tree and build
+  the vertical order traversal list. Depth- as opposed to breadth- first search
+  was selected as we keep the current row and column position being added in the
+  answer list. Imagine we are traversing the following tree:
 
 #+begin_src latex :exports results :results raw file :file simpletree.png :output-dir ../img
   \resizebox{0.4\textwidth}{!}{%
@@ -334,34 +377,34 @@ answer list. Imagine we are traversing the following tree:
 [[file:../img/simpletree.png]]
 
 
-If we are traversing in a BFS fashion, we would traverse the first row $R_1$, nodes
-1 and 2, then the second, traversing 3,5,4 and 6 and thirdly 7 and 8. This way,
-we would need first to traverse the children of 1 store them in the list $R_2$,
-then store the descendants of node 2 in $R_2$, in order to finally traverse all
-of the descendents of nodes in the second row, 7 and 8. Now, imagine how hard
-it would be to keep track of all current rows and columns when given the list
-$R_2$, how would we have the infomation that node 5 is actually the right node
-of 1 and therefore the column position of 1 must be incremented by one, or would
-we need to hard-wire the position of each node in the tree just to reupdate it
-every time a new node is created and the relative position of all other nodes are
-changed? If we traverse in a DFS fashion, we find ourselves in node $n_{i,j}$ and can
-directly traverse it's descendents $n_{i+1,j-1}$ and $n_{i+1,j+1}$ assigning the
-relative row and column thereby making our lifes easier when adding values to
-the vertical order traversal list.
-
-This list has one list per column from left to right, however, when two nodes
-are in the same row and column, like $4$ and $5$ they must be sorted by their
-values, independent of the order they were added to the solution list. Therefore,
-when adding a node $n$ to index $c_i$ of the list one must know to which
-row each node in $c_i$ belongs to, so that if they happend to be in the same
-row as $n$ they must appear in an ascendent order.
-
-In every iteration, one node will be visited, $root$, and it's two children will
-be added to the list, adding an element to the list can take at badly designed
-binary trees, $n/2$ (imagine a tree which each of the root's children have zigzaged
-left and right descendents), therefore it takes at most $O(n)$ place an element
-in the answer list. Hence it will take $O(N^2)$ or $O(E.N)$ as in binary trees
-the number of edges $E=N-1$.
+  If we are traversing in a BFS fashion, we would traverse the first row $R_1$, nodes
+  1 and 2, then the second, traversing 3,5,4 and 6 and thirdly 7 and 8. This way,
+  we would need first to traverse the children of 1 store them in the list $R_2$,
+  then store the descendants of node 2 in $R_2$, in order to finally traverse all
+  of the descendents of nodes in the second row, 7 and 8. Now, imagine how hard
+  it would be to keep track of all current rows and columns when given the list
+  $R_2$, how would we have the infomation that node 5 is actually the right node
+  of 1 and therefore the column position of 1 must be incremented by one, or would
+  we need to hard-wire the position of each node in the tree just to reupdate it
+  every time a new node is created and the relative position of all other nodes are
+  changed? If we traverse in a DFS fashion, we find ourselves in node $n_{i,j}$ and can
+  directly traverse it's descendents $n_{i+1,j-1}$ and $n_{i+1,j+1}$ assigning the
+  relative row and column thereby making our lifes easier when adding values to
+  the vertical order traversal list.
+  
+  This list has one list per column from left to right, however, when two nodes
+  are in the same row and column, like $4$ and $5$ they must be sorted by their
+  values, independent of the order they were added to the solution list. Therefore,
+  when adding a node $n$ to index $c_i$ of the list one must know to which
+  row each node in $c_i$ belongs to, so that if they happend to be in the same
+  row as $n$ they must appear in an ascendent order.
+  
+  In every iteration, one node will be visited, $root$, and it's two children will
+  be added to the list, adding an element to the list can take at badly designed
+  binary trees, $n/2$ (imagine a tree which each of the root's children have zigzaged
+  left and right descendents), therefore it takes at most $O(n)$ place an element
+  in the answer list. Hence it will take $O(N^2)$ or $O(E.N)$ as in binary trees
+  the number of edges $E=N-1$.
 
 #+begin_src java
   class Solution {
@@ -411,23 +454,23 @@ the number of edges $E=N-1$.
       }
   }
 #+end_src
-$flights[][]$ is a set of edges $E$, however, finding a specific flight from city $i$
-takes $O(n)$, instead, this solution first converts this matrix into an adjacency
-list with space $\Theta(|E|)$ (as this is a directional graph), and time to find
-an adjacent node is the degree of the current node. 
-
-This solution explores the graph in a BFS fashion, and by keeping a queue of layers
-i.e. the nodes not in the layer adjacent to nodes in the layer. Ultimately, we
-would like to know the cheapest cost of reaching any node from the $src$ city with
-at most $k$ stops in between, therfore our BFS can have at most $k+2$ layers. Hence,
-a hashmap $destinationCost$ with the costs of reaching every single node is kept, that also tracks
-which nodes were visited. At each while-loop step, the last added node is removed
-from the $layer$ queue and it's adjacent edges are explored. If the newly found
-city wasn't yet visited, then we add it to the top of the queue, and cache the costs
-for reaching it. If howerver, the found city was already visited than we only update
-the costs if they are lower.
-
-To understand why caching is necessary take a look at this graph:
+  $flights[][]$ is a set of edges $E$, however, finding a specific flight from city $i$
+  takes $O(n)$, instead, this solution first converts this matrix into an adjacency
+  list with space $\Theta(|E|)$ (as this is a directional graph), and time to find
+  an adjacent node is the degree of the current node. 
+  
+  This solution explores the graph in a BFS fashion, and by keeping a queue of layers
+  i.e. the nodes not in the layer adjacent to nodes in the layer. Ultimately, we
+  would like to know the cheapest cost of reaching any node from the $src$ city with
+  at most $k$ stops in between, therfore our BFS can have at most $k+2$ layers. Hence,
+  a hashmap $destinationCost$ with the costs of reaching every single node is kept, that also tracks
+  which nodes were visited. At each while-loop step, the last added node is removed
+  from the $layer$ queue and it's adjacent edges are explored. If the newly found
+  city wasn't yet visited, then we add it to the top of the queue, and cache the costs
+  for reaching it. If howerver, the found city was already visited than we only update
+  the costs if they are lower.
+  
+  To understand why caching is necessary take a look at this graph:
 
 #+begin_src latex :exports results :results raw file :file simplecycle.png :output-dir ../img
   \resizebox{0.4\textwidth}{!}{%
@@ -448,32 +491,32 @@ To understand why caching is necessary take a look at this graph:
 [[file:../img/simplecycle.png]]
 
 
-Assume, in this case that the passenger would like to do at most one stop. In the
-first step BFS will explore node 0, and find node 1, then node 2, and
-update the following costs: $\{1: 1, 2: 5\}$
-
-Then it will explore node 1, and update the cost of reaching node 2: $\{1: 1, 2: 1\}$
-
-Lastly, it will explore node 2 and add the cost of reaching node 3: $\{1: 1, 2: 2, 3: 3\}$
-
-However, the passenger cannot reach node 3 with a single stop! The algorithm believes
-that as the cost hashmap was updated while exploring the next layer. If we had
-updated ${2: 1}$ only after exploring node 2, than it would update the value of 2
-correctly as ${3: 6}$ hence the caching of costs, until the whole layer was explored.
-Also notice, that after a node $i$ that was cached improves the cost of an already
-existing city, $i$ should be re explored as soon as possible with the better
-costs, to prevent that nodes based on the older costs of $i$ won't spread older values.
-Notice this also allows a passanger willing to go through several stops to get
-a better price, as this will turn prices cheaper as long as the amount of stops permits.
-
-The complexity of this algorithm is not obvious to justify, although we remove
-one city at each while-loop, cities could be reintroduced to the queue if their
-price decreases. A better way to find an upper bound by looking at $k$, $k$ will stay the same
-while one layer is being explored, a layer contains at most $n$ nodes. Therefore the
-while loop would take at most $O(kn)$ which is a pretty high upper bound, as usually
-this algorithm would run $O(m)$ by looking at every city and all it's incident
-edges, i.e. by going through all the edges present in the graph. Therefore, amortized
-linear time on the amount of flights.
+  Assume, in this case that the passenger would like to do at most one stop. In the
+  first step BFS will explore node 0, and find node 1, then node 2, and
+  update the following costs: $\{1: 1, 2: 5\}$
+  
+  Then it will explore node 1, and update the cost of reaching node 2: $\{1: 1, 2: 1\}$
+  
+  Lastly, it will explore node 2 and add the cost of reaching node 3: $\{1: 1, 2: 2, 3: 3\}$
+  
+  However, the passenger cannot reach node 3 with a single stop! The algorithm believes
+  that as the cost hashmap was updated while exploring the next layer. If we had
+  updated ${2: 1}$ only after exploring node 2, than it would update the value of 2
+  correctly as ${3: 6}$ hence the caching of costs, until the whole layer was explored.
+  Also notice, that after a node $i$ that was cached improves the cost of an already
+  existing city, $i$ should be re explored as soon as possible with the better
+  costs, to prevent that nodes based on the older costs of $i$ won't spread older values.
+  Notice this also allows a passanger willing to go through several stops to get
+  a better price, as this will turn prices cheaper as long as the amount of stops permits.
+  
+  The complexity of this algorithm is not obvious to justify, although we remove
+  one city at each while-loop, cities could be reintroduced to the queue if their
+  price decreases. A better way to find an upper bound by looking at $k$, $k$ will stay the same
+  while one layer is being explored, a layer contains at most $n$ nodes. Therefore the
+  while loop would take at most $O(kn)$ which is a pretty high upper bound, as usually
+  this algorithm would run $O(m)$ by looking at every city and all it's incident
+  edges, i.e. by going through all the edges present in the graph. Therefore, amortized
+  linear time on the amount of flights.
 
 * GeeksForGeeks: [[https://practice.geeksforgeeks.org/problems/implementing-dijkstra-set-1-adjacency-matrix/1][Implementing Dijkstra Algorithm]]
   
@@ -511,7 +554,126 @@ linear time on the amount of flights.
          return res;
      }
  }
- #+end_src
+#+end_src
+  Dijkstra works in graphs without negative edges by defining the path of lowest cost
+  from node $S$ to every other node in the graph. We will get to the reasons why
+  it doesn't work for negative edges later. Dijkstra works by initializing the
+  distance to every node, except $S$, with infinity. The algorithm traverse the
+  graph by exploring unexplored nodes, that is, to consider all of the outgoing
+  edge $n_{curr}$ of $cur$ and updating the cost to reach it considering the weight
+  to reach $cur$. Therefore, the algorithm would start with unexplored node $S$
+  and look at every of it's neighbors, and each of those neighbors $n_S$ (which have
+  cost initially set to infinity), would be updated with the weight of their respective
+  edges $res[n_S] = w(e_{S,n_S})$, it would also add each $n_S$ to the $unexplored$ queue.
+  Notice that $unexplored$ queue is a $PriorityQueue$ or a min-heap based on the
+  nodes weight. A min-heap in this context means we have a balanced binary tree
+  where each parent node has smaller or equal weight than both children, in this case
+  the node with smallest total cost would be the root. This node is the next, to be
+  explored, and it is marked closed, that is, it won't be explored again, and the
+  same exploration step repeats.
+
+  This is the main assumption of Dijkstra, that after a node $c$ is marked closed it
+  is indeed the shortest path from $S$, notice that it makes this assumption without
+  considering the whole graph, but only the paths with smallest cost that reaches
+  $c$. That is if a node is unexplored and the cost of reaching it is the minimal
+  from the another closed node than it's minimality will not change by adding any
+  other positive weight. However this is not the case when there are negative edges,
+  in this case, a node could not be marked as closed, as it could be the case that
+  it is possible to reach this node through an unexplored edge with higher cost
+  which is compensated by negative weight edges, offering a overall total cost. The
+  example bellow shows why this is the case. The algorithm above would explore
+  the starting node 0 and close it, there are no outgoing edges from node 1. Moreover,
+  it would explore node 2, however, it will not update the cost of reaching node 1,
+  as it is already closed. 
+
+#+begin_src latex :exports results :results raw file :file negweightcycle.png :output-dir ../img
+  \resizebox{0.4\textwidth}{!}{%
+    \begin{tikzpicture}[scale=1,nodes={}, ->]
+     \node[circle, draw](n0) at (0,3) {0};
+     \node[circle, draw](n1) at (3,2) {1};
+     \node[circle, draw](n2) at (0,0) {2};
+      \draw[to] (n2) -- (n1) node[none] [midway, above] {-2};
+      \draw[to] (n0) -- (n1) node[none] [midway, above] {2};
+      \draw[to] (n0) -- (n2) node[none] [midway, left] {3};
+   \end{tikzpicture}
+       }%
+#+end_src
+
+#+RESULTS:
+[[file:../img/negweightcycle.png]]
+
+  
+* GeeksForGeeks: [[https://practice.geeksforgeeks.org/problems/negative-weight-cycle3504/1#][Negative weight cycle]]
+#+begin_src java
+class Solution
+{
+    // implement bellman-ford algorithm
+    public int isNegativeWeightCycle(int n, int[][] edges)
+    {
+        long cost;
+        int[] lowestCost = new int[n];
+        Arrays.fill(lowestCost, Integer.MAX_VALUE);
+        // WLOG say the source node has index 0
+        lowestCost[0] = 0;
+        for (int i=0; i<n; ++i){
+            for (int[] edge: edges){
+                cost = (long)lowestCost[edge[0]] + edge[2];
+                if (cost < lowestCost[edge[1]]){
+                    lowestCost[edge[1]] = (int)cost;
+                }
+            }
+        }
+        // check for negative cycles
+        for (int[] edge : edges){
+            if ((edge[2] + lowestCost[edge[0]]) < lowestCost[edge[1]]){
+                return 1;
+            }
+        }
+        return 0;
+    }
+}
+#+end_src
+  The key to understand why this works, or to prove the Bellman-Ford is to understand
+  the relationship between the two for-loops. In each iteration of the outer loop
+  the cost to reach each edge is updated, or the edges are relaxed. The claim is
+  that at the ith iteration of the outer loop then we have all the shortest paths
+  of size $i$ from node 0. Of course, if a node $u$ is not reacheable from node 0 with
+  i edges, then $u = Integer.MAX_VALUE$ and hence unreachable. This property is known
+  as the path-relaxation property. And if we accept this as true than it's not hard
+  to show the algorithm works, as the longest possible straight path in any graph
+  has to go through at most $n-1$ edges. Therefore, in $n-1$ iterations of the outer
+  loop we should be able to get all of the shortest paths.
+
+  Let's try now to show why the path relaxation property works by proving it by
+  induction. Clearly, if there's only the source node 0 and $n$ neighboring nodes
+  $n_0$ than the shortest path to each $n_0$ is simply the weight of its edge from 0.
+  Now the induction hypothesis should claim that we can reach every path with the
+  form $p_{k-1} = {v_0, v_1, ... v_{k-1}}$ and it is a path with shortest cost from $v_0$
+  to $v_{k-1}$ with length $k-1$, and this path was obtained by $k-1$ iterations
+  of the outer loop. The induction step would be to prove that by relaxing all of
+  the edges another time, we would be able to find all shortest paths of length $k$.
+  The cost of a path to $v_k$, should be equal to the cost of a path to $v_{k-1}$ plus
+  the smallest weight edge from $min(v_{k-1},v{k})$. Because all of the edges are
+  inspected in the inner loop, also is the edge that satisfies $min(v_{k-1},v{k})$,
+  and this edge will determine the cost of reaching $v_k$, independent if other
+  edges of higher weight $(v_{k-1},v{k})$ were inspected before or after. As we can
+  see in the program above, that the cost is only updated if it is smaller than the
+  current cost of reaching $edge[1]$. Generally, this will be the case for every
+  path of size $k$.
+
+  With the argument made above, we can also claim that it would take at most $n-1$
+  steps to find all of the lowest cost path for straight paths. However, this is not
+  the case for path with negative cycles, if there is a node $v_c$ part of a negative
+  cycle within $p_k$ then it is always possible to loop the negative cycle and reduce
+  the cost to reach $v_k$. As all edges are considered in the last loop that check
+  for negative edges, all edges in the negative cycle are considered and they will
+  be able to decrease the cost of paths touching such cycles.
+
+  The time-complexity of this algorithm is clearly $\Theta(n.m)$ for $m$ being the
+  amount of directed weighted edges in the graph, hence the $O(m)$ operation to
+  calculate the the existence of cycles is negligible. The space is the space of
+  the $lowestCost$ array which is $\Theta(n)$.
+
 
 * HackerRank: [[https://www.hackerrank.com/challenges/ctci-bfs-shortest-reach/problem?isFullScreen=true][BFS: Shortest Reach in a Graph]]
 #+begin_src java
