@@ -1,10 +1,11 @@
 #+TITLE: knowledge repo
+#+SUBTITLE: About this
 #+INCLUDE: "navbar.html" export html
 #+OPTIONS: toc:nil
 #+OPTIONS: num:nil
 #+HEADER: :results output silent :headers '("\\usepackage{tikz}")
 
-* About this
+* Hows and Whys
 
 I have decided to record what I learn, as I believe writing is a great way to
 persist knowledge. Concretely, a tweak of Feynman's study technique, instead of
