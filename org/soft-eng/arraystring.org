@@ -1,10 +1,182 @@
-#+TITLE: Array and string manipulation
+#+TITLE: Array, string and set manipulation
 #+SUBTITLE: Software Engineering Topics
 #+INCLUDE: "../navbar.html" export html
 #+OPTIONS: toc:nil
 #+OPTIONS: num:nil
 #+HEADER: :results output silent :headers '("\\usepackage{tikz}")    
 #+HEADER: :results output silent :headers '("\\usepackage{pgfplots}")
+
+* LeetCode: [[https://leetcode.com/problems/container-with-most-water/][Container With Most Water - 11]]
+#+begin_export java
+class Solution {
+    public int maxArea(int[] height) {
+        int left = 0, right = height.length -1;
+        int maxArea = -1;
+        while (left < right){
+            maxArea = Math.max(maxArea,
+                               (right-left)*Math.min(height[left], 
+                                                     height[right]));
+            if (height[left] <= height[right])left += 1;
+            else right -= 1;
+        }
+        return maxArea;
+    }
+}
+#+end_export
+One way to think about this problem is to think about reducing the left and right
+indexes without compromising the maximal area over the whole set. We can attempt
+to prove that this is the case for arbitrary left $l$ and right $r$ indexes. Assuming
+the current maximum area over the inspected vertical lines is $M$, the amount of
+water for $l$ and $r$ is bounded by $min(height[l],height[r])$ and $r-l$ therefore
+we will update $M$ if necessary for $l,r$ and if $height[l] <= height[r]$ we will
+increment $l$ that also means that there is no area bigger than $M$ with left=$l$
+regardless of the value of because for any other value of $r'\le r$ then
+necessarily $r'-l\le r-l$, and as $min(height[l],height[r]) = height[l]$ than
+$min(height[l],height[r']) \le height[l]$. For this reason it is okay to increment
+$l$ and never look back, we could build a similar argument to show that the increment
+of $r$ also preserves the maximality $M$ over the vertical lines.
+
+This code runs in $\Theta(n)$ at it is always possible that in the very middle there
+are bars infinitely long this algorithm should inspect all of the vertical lines at
+least once. The space complexity is constant as we don't need to make use of any
+data structures.
+* LeetCode: [[https://leetcode.com/problems/minimum-size-subarray-sum/][Minimum Size Subarray Sum - 209]]
+
+#+begin_src java
+class Solution {
+    public int minSubArrayLen(int target, int[] nums) {
+        int i = 0, runningSum = 0, n = nums.length, m = nums.length;
+        if (Arrays.stream(nums).sum() < target) return 0;
+        for (int j=0; j < n; ++j){
+            runningSum += nums[j];
+            while (runningSum >= target){
+                m = Math.min(m, j-i+1);
+                runningSum -= nums[i];
+                i += 1;
+            }
+        }
+        return m;
+    }
+}
+#+end_src
+This algorithm keeps a window within $nums$ of size $m$ corresponding to the
+$runningSum$. The key aspect is to understand is how this window shifts over
+the array, and how this shift finds the minimum subarray with $runningSum \ge target$.
+Concretely, it sums over numbers over $j$, and as soon as this sum reaches the
+target at $nums[j']$ then it removes numbers in the beginning of the window
+while $runningSum >= target$ in search of the minimum array with the right limit
+of the window at $j'$. In fact, this algorithm provides the minimum subarray where
+the right limit number is $num[j]$ and $runningSum \ge target$ for every $j$.
+
+To define the time complexity we need to talk about how many times will the $for$
+and $while$ loop run in the worst case. Intuitively we can claim that the $for$
+run $n$ times over $j$ and for each of those times the while loop at most
+increase $i$ up to the current value of $j$ so it seems that we are talking about
+an $O(n^2)$ complexity, however, we can provide a tighter upper bound if we take
+a second look. Throughout the program execution the while loop will at most iterate
+over all $0 \le i < n$ and the $for$ loop will iterate $n$ times no matter what.
+Therefore, this algorithm will iterate at most $2n$, so the upper bound is $O(n)$.
+The space complexity is clearly constant.
+
+
+* LeetCode: [[https://leetcode.com/problems/strobogrammatic-number/][Strobogrammatic Number - 246]]
+#+begin_src java
+class Solution {
+    public char getStroboCompl(char c){
+        switch (c){
+            case '0':
+                return '0';
+            case '1':
+                return '1';
+            case '6':
+                return '9';
+            case '8':
+                return '8';
+            case '9':
+                return '6';
+            default:
+                break;            
+        }
+        return ' ';
+    }
+    public boolean isStrobogrammatic(String num) {
+        char[] numArray = num.toCharArray();
+        int n = numArray.length;
+        // if n == 1 and the num[0] is strobogrammatically identical
+        // to itself return true
+        if (n == 1 && numArray[0] == getStroboCompl(numArray[0])) return true;
+        // if the string is odd and the middle num is not 
+        // strobogrammatically identical to itself return false
+        if (n % 2 == 1 && getStroboCompl(numArray[n/2]) != numArray[n/2]){
+            return false;
+        }
+        // otherwise check that each maching index in the beginning
+        // and end of the string are strobogrammatically complements
+        for (int i=0; i<n/2; ++i){
+            if (getStroboCompl(numArray[i]) != numArray[n-i-1]) return false;
+        }
+        return true;
+    }
+}
+#+end_src
+The main function is quite simple to read and should not be so hard to understand
+given the comments. The $getStroboCompl$ constant time function, gives the
+number obtained when flipping given char $c$, which could either be itself (in
+case of 0) or some other number (like 6 and 9). There are two edge cases first
+considered: firstly, if the array has size one than number's strobo complement
+is itself than we can already return true. Secondly, if the number has odd size
+and the middle number's strobo complement is not itself than regardless of the
+other numbers, we can already claim that the number won't look like itself when
+flipped, this edge case will also catch the case when there is a single number
+in the array that is strobo complement is itself (the /"else"/ of the first edge case).
+
+Generally, we can only claim that a number is strobogrammatic if for each decimal
+in the beginning of the number is strobogrammatic complement to a matching decimal
+on the end of the number, otherwise, we quickly return false, which is exactly
+what we are doing in the $for$ loop. This loop takes at most $n/2$ iterations
+therefore $O(n)$.
+
+* LeetCode: [[https://leetcode.com/problems/integer-to-roman/][Integer to Roman - 12]]
+#+begin_src java
+class Solution {
+    
+    String M[] = {"", "M", "MM", "MMM"};
+    String C[] = {"", "C", "CC", "CCC", "CD", "D", "DC", "DCC", "DCCC", "CM"};
+    String X[] = {"", "X", "XX", "XXX", "XL", "L", "LX", "LXX", "LXXX", "XC"};
+    String I[] = {"", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"};
+    
+    public String intToRoman(int num) {
+        String sNum = new StringBuilder(String.valueOf(num)).reverse().toString();
+        int n = sNum.length();
+        int curDigit;
+        StringBuilder res = new StringBuilder(3*n);
+        for (int i=n-1; i>=0; --i){
+            curDigit = sNum.charAt(i) - '0';
+            if (i == 3) res.append(M[curDigit]);
+            else if (i == 2) res.append(C[curDigit]);
+            else if (i == 1) res.append(X[curDigit]);
+            else if (i == 0) res.append(I[curDigit]);
+        }
+        return res.toString();
+    }
+}
+#+end_src
+
+I think the insight is to notice that if we take a decimal from a number, say '3'
+depending on where this decimal is in the number will change it's roman representation.
+For instance, the 3 in 13 is simply III, if it was 301, then it would look like
+CCC. Therefore multiple mappings from decimal to it's string representation should
+be provided, which should help us fetch the roman symbols depending on where the
+decimal was found in the number. This "mapping" can be simply implemented as an
+$String[]$ for the different multiples of 10.
+
+Because we only have to support up to $10^4$ we could just write write multiple
+if - else if statements for each possible position in the number, mapping them
+to the roman representation and appending to result. This is of course not an
+scalable strategy we could eventually create a $String[i][j]$ matrix to map the multiple
+of 10 as $i$ and the decimal value $j$ to the roman representation. The time complexity
+is $\Theta(n)$ as one must always check every decimal composing the number to generate
+the roman representation.
 
 * LeetCode: [[https://leetcode.com/problems/html-entity-parser/][HTML Entity Parser - 1410]]
    
@@ -45,14 +217,17 @@ class Solution {
 }
 #+end_src
 
-Say that the string is of length $n$, and there are $p$ HTML entities in a string:
+Say that the string is of length $n$, this solution assumes there are $p$ 
+HTML entities in a string, and therefore:
 \[p=N_{semicolons}=N_{amperstands}\]
 
 The while loop will iterate $p$ times, everytime it will run a 
 $O(n)$ $indexOf()$ method which iterates through the string checking
-a characters one by one, and the $substring$ method taking also $O(n)$ for 
-creating a copy of the original $text$ string. Therefore the complexity is $O(n)$
-with a $2p$ constant.
+a characters one by one, and the $substring$ method takes also $O(n)$ for 
+creating a copy of the original $text$ string. However, in practice, indexOf 
+will advance the position it is searching, and the aggregated search for every
+$p$ will take O(n) for searching amperstands and O(n) for semi-colons. 
+Therefore the complexity is $O(n)$.
 
 * HackerRank: [[https://www.hackerrank.com/challenges/balanced-brackets/problem?isFullScreen=true][Balanced Brackets]]
 #+begin_src java
@@ -81,6 +256,18 @@ with a $2p$ constant.
     }
 }
 #+end_src
+This solution iterates through the input strings with index $i$ looking for 
+subsequent matching pairs of brackets. Whenever it finds one, it generates a 
+new string $s$ produced by removing this pair, and going one step back with $i$.
+If at the end the the execution $s$ is empty, then $s$ is balanced, otherwise
+it is not. If there is no subsequent matching pair, this solution will just 
+take $O(n)$ to iterate the string. If there is a matching pair, the solution will
+take $O(n)$ to generate the new substring $s$ as it is necessary to copy every
+relevant string then $O(n)$ to concatenate, therefore the the if statement
+takes 2n of time to execute. There are ways to use StringBuilder to reduce this
+complexity but it is beyond the purpose of this post. In the worst case there will
+be n/2 mathing pairs, and thus in total the complexity will be n/2*2n, O(n^2).
+
 * GeeksForGeeks: [[https://practice.geeksforgeeks.org/problems/stock-buy-and-sell-1587115621/1/][Stock buy and sell]]
 #+begin_src java
 class Solution{
@@ -94,7 +281,7 @@ class Solution{
             if (buyOn == -1 && priceDiff > 0){
                 buyOn = i;
             }
-            // if the stock was bought, and sell today if it is going down tomorrow
+            // if the stock was bought, sell today if it is going down tomorrow
             if (buyOn >= 0 && (i+1 == A.length-1 || priceDiff < 0)){
                 final int buyDay = buyOn;
                 int sellOn = i;
@@ -125,3 +312,222 @@ This is not a hard question per se, besides the complicated if statements there
 is not much else challenging. The implementation, however, shows interesting 
 aspects of ArrayLists, for instance, the on-the-fly creation of ArrayLists within
 ArrayLists.
+
+* LeetCode: [[https://leetcode.com/problems/number-of-islands/][Number of Islands - 200]]
+#+begin_src java
+class Solution {
+    // returns the first found cell with land in the grid
+    // initPos: nColumns*xPos + yPos
+    // returns: x, y if exists and -1, -1 otherwise
+    public int[] searchForLand(int x, int y, char[][] grid){
+        int[] initLandCell = new int[2];
+        initLandCell[0] = -1;
+        initLandCell[1] = -1;
+        for (int i=x; i<grid.length; ++i){
+            y = (i == x) ? y : 0;
+            for (int j=y; j<grid[0].length; ++j){
+       	        if (grid[i][j] == '1'){
+       	            initLandCell[0] = i;
+       	            initLandCell[1] = j;
+       	            return initLandCell;
+       	        }
+            }
+        }
+        return initLandCell;
+    }
+    public int numIslands(char[][] grid) {
+        int r = grid.length, c = grid[0].length;
+        // unvisited cells where int[0]: x pos and int[1]: y pos
+        ArrayDeque<int[]> unvisited = new ArrayDeque<int[]>();
+        int[] curCell, initLandCell = new int[]{0, 0};
+        int countIsland = 0;
+        do{
+            // search the grid for the first cell with land in the grid
+            initLandCell = searchForLand(initLandCell[0], initLandCell[1], grid);
+            if (initLandCell[0]+initLandCell[1] < 0) return countIsland;
+            // run dfs on this cell transforming land in water
+            unvisited.offer(initLandCell);
+            countIsland+=1;
+            grid[initLandCell[0]][initLandCell[1]] = '0';
+            while (unvisited.size() > 0){
+       	        curCell = unvisited.pollLast();
+       	        if (curCell[0]+1 < r && grid[curCell[0]+1][curCell[1]] == '1'){
+       	            unvisited.offerFirst(new int[]{curCell[0]+1, curCell[1]});
+       	            grid[curCell[0]+1][curCell[1]] = '0';
+       	        }
+       	        if (curCell[0]-1 >= 0 && grid[curCell[0]-1][curCell[1]] == '1'){
+       	            unvisited.offerFirst(new int[]{curCell[0]-1, curCell[1]});
+       	            grid[curCell[0]-1][curCell[1]] = '0';
+       	        }
+       	        if (curCell[1]+1 < c && grid[curCell[0]][curCell[1]+1] == '1'){
+       	            unvisited.offerFirst(new int[]{curCell[0], curCell[1]+1});
+       	            grid[curCell[0]][curCell[1]+1] = '0';
+       	        }
+       	        if (curCell[1]-1 >= 0 && grid[curCell[0]][curCell[1]-1] == '1'){
+       	            unvisited.offerFirst(new int[]{curCell[0], curCell[1]-1});
+       	            grid[curCell[0]][curCell[1]-1] = '0';
+       	        }
+            }
+          // repeat while there is no more cell with land in the grid            
+        } while ((initLandCell[0] + initLandCell[1]) >= 0);
+        return countIsland;
+    }
+}
+#+end_src
+
+The idea here is to traverse the grid until the first piece of land was found, 
+then run a BFS on this island transforming every land cell into an water cell,
+i.e. 1 to 0. When the whole island is gone, i.e. when there are no more neighbouring
+land cells, we retrigger our land-finding function from the last found land position,
+this way, we only have to traverse the grid once with the $searchForLand$ function
+throughout the execution. 
+
+The time complexity of this algorithm is not so easy to see, as mentioned over the
+total execution of the algorithm the $searchForLand$ function will run at most \
+$n = rc$ times, as we provide an $x$ and $y$ arguments to the function. We can use
+the same argument to claim that the $while$ loop is also bounded by $n$ as there 
+are at most $n$ land cells in the grid, and therefore these cells will only be
+pushed to the $unvisited$ queue $n$ times. As overall we have $n$ iterations for
+the $searchForLand$ function plus $n$ iterations of the $while$ loop, this algorithm
+runs in $O(n)$ as all the other operarations run in constant time, pushing to queue,
+assignments, ...
+
+
+* LeetCode: [[https://leetcode.com/problems/word-search/][Word Search - 79]]
+#+begin_src java
+class Solution {
+    class CellState {
+        public int x; 
+        public int y; 
+        // bit str representing all the visited positions
+        public long visited;        
+        // index of next char to be read in word
+        public int nextIndex;      
+        public CellState(int posX, int posY, int nextIndex, long visited){
+            this.x = posX;
+            this.y = posY;
+            this.visited = visited;
+            this.nextIndex = nextIndex;
+        }
+    }
+    private int r;
+    private int c;
+    // find the set of positions x = pos[0], y = pos[1] of the first letter in word
+    private ArrayList<int[]> findStartPositions(char[][] board, char letter){
+        ArrayList<int[]> positions = new ArrayList<int[]>();
+        for (int x=0; x<r; ++x){
+            for (int y=0; y<c; ++y){
+                if (board[x][y] == letter){
+                    positions.add(new int[]{x, y});
+                }
+            }
+        }
+        return positions;
+    }
+    // fetch suitable neighbors from current node, that:
+    // - respects the board's dimensions
+    // - wasn't visited before
+    // - whose letter correspond to the next letter in the word
+    private ArrayList<int[]> getSuitableNeighbors(CellState cur, char[][] board, String word){
+        ArrayList<int[]> neighbors = new ArrayList<int[]>(4);
+        char nextLetter = word.charAt(cur.nextIndex);
+        if (cur.x+1 < r && 
+            (cur.visited>>(c*(cur.x+1)+cur.y) & 1) == 0 && 
+            nextLetter == board[cur.x+1][cur.y]){
+            neighbors.add(new int[]{cur.x+1, cur.y});
+        } 
+        if (cur.x-1 >= 0 && 
+            (cur.visited>>(c*(cur.x-1)+cur.y) & 1) == 0 && 
+            nextLetter == board[cur.x-1][cur.y]){
+            neighbors.add(new int[]{cur.x-1, cur.y});
+        }
+        if (cur.y+1 < c && 
+            (cur.visited>>(c*(cur.x)+cur.y+1) & 1) == 0 && 
+            nextLetter == board[cur.x][cur.y+1]){
+            neighbors.add(new int[]{cur.x, cur.y+1});
+        }
+        if (cur.y-1 >= 0 && 
+            (cur.visited>>(c*(cur.x)+cur.y-1) & 1) == 0 && 
+            nextLetter == board[cur.x][cur.y-1]){
+            neighbors.add(new int[]{cur.x, cur.y-1});
+        }
+        return neighbors;   
+    }
+    // implement BFS starting on all of the cells containing the first letter in word
+    public boolean exist(char[][] board, String word) {
+        r = board.length; c = board[0].length;
+        ArrayDeque<CellState> unvisited = new ArrayDeque<CellState>(r*c);
+        ArrayList<int[]> startPositions = findStartPositions(board, word.charAt(0));
+        // run DFS for each start position
+        for (int[] start : startPositions){
+            unvisited.offer(new CellState(start[0], start[1], 1,
+                                      (long)Math.pow(2, c*start[0]+start[1])));
+            // DFS
+            while (unvisited.size() > 0){
+                CellState cur = unvisited.pollLast();
+                String binRepr = Long.toBinaryString(cur.visited);
+                if (cur.nextIndex >= word.length()) return true;
+                for (int[] neigh : getSuitableNeighbors(cur, board, word)){
+                    unvisited.offerLast(new CellState(neigh[0], neigh[1], cur.nextIndex+1, 
+                                                  cur.visited + (long)Math.pow(2, c*neigh[0]+neigh[1])));
+                }
+            }
+        }
+        return false;
+    }
+}
+#+end_src
+
+Notice that our search could start from any cell with letter equals to $word[0]$
+that is exactly what $findStartPositions(board, letter)$ does. Moreover, we start a 
+DFS from each of the cells retrieved by the function which will only return true
+if we are poping the last letter in the word. Notice that the object we are popping
+out of the list is a $CellState$ containing not only the current cell's x and y 
+position but also the visited cells and the referring letter in the word. The trick 
+is to understand that at any point in time we need to know who are the visited cells
+as we could reach the same cell in multiple ways therefore omitting this information
+is not possible. For example consider the following board configuration and the word
+ACEDEG.
+
+|---+---+---|
+| A | C | E |
+|---+---+---|
+| G | E | D |
+|---+---+---|
+| A | F | C |
+|---+---+---|
+
+Notice we can reach D in two ways by matching the letters in word, however, only
+one of them will lead to the right solution. To minimize the cost of storing all
+of the previously visited cell we store it in a long. If we flatten the board above
+in the following form:
+|---+---+---+---+---+---+---+---+---|
+| A | C | E | G | E | D | A | F | C |
+|---+---+---+---+---+---+---+---+---|
+
+We could simply store the visited cells as long, imagine we have visited the cells
+in AFED: (0,0), (0,1), (0,2), (1,2). Then the long would look like:
+|---+---+---+---+---+---+---+---+---|
+| 0 | 0 | 0 | 0 | 1 | 1 | 1 | 1 | 0 |
+|---+---+---+---+---+---+---+---+---|
+
+Which in binary is equal to 30. Therefore we start a cell corresponding to $word[0]$ 
+and push whenever one of it's potential 4 neighbors respect the following criteria:
+
+  1. respects the board's dimensions
+  2. wasn't visited before
+  3. correspond to the next letter in the word
+
+This is exactly what $getSuitableNeighbor$ does, which despite it's length run in
+amortized constant time. "Amortized" because there is a sneaky $Array.add$ function
+there which could take more time to copy elements over when the array goes over it's
+inital capacity, however, there are at most 4 neighbors and hence it also runs 
+in constant time. The $findStartPositions$ function takes $O(rc)$ or $O(n)$ and
+for each cell matching $word[0]$ we run a DFS which takes $O(n)$. So what is the 
+performance of the whole algorithm, O(n^2)? That would suggest that in the worst
+case every cell matches first letter and the DFS would also take $O(n)$ which could
+be the case if we have say a board filled with a single letter. However, in this
+case, in the first execution of the DFS the algorithm would be able to find a solution
+for wherever words composed of the single letter. However, if say the board is
+full of As and the word is AAAAB, then it would take indeed $O(n^2)$ to find that
+such path cannot exist.
