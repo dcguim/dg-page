@@ -10,23 +10,25 @@
   The form and intensity which nodes are connected to each other is an important
   factor when designing graph algorithms. Usually, a graph is implemented either
   as an adjacency list or a matrix, if every node  is connected to each other
-  (the graph is /strongly/ connected), then one might prefer a $\Omega(n^2)$
-  matrix representation as the presence of edges can be fetched in $\Omega(1)$,
-  retrieving a current node's neighbor is returned in $\Omega(n)$.
+  (the graph is /strongly/ connected), then one could use a $\Theta(n^2)$ space
+  matrix representation as the presence of edges can be checke in $\Theta(1)$ time,
+  and retrieving a current node's neighbor is returned in $\Theta(n)$ time.
 
-  The degree $d_a$, is the notation measures how connected is node $a$. For
+  The degree $d_a$, is the notation which measures how connected is node $a$. For
   /sparse/ graphs, when the degrees of the nodes are usually smaller than $n$
-  an $\Omega(n+m)$ adjacency list representation is better fit. Notice, in such
-  lists, the sum of all degrees for every node, assuming undirected edges, is:
+  an $\Theta(n+m)$ space adjacency list representation is a better fit. Notice,
+  in such representation, the sum of all degrees for every node, assuming undirected
+  edges, is:
   \[ \sum_{i \in N} d_i = 2m \]
 
   As the same edge $(a, b)$ exists in $adj[a]$ and $adj[b]$. Retrieving
-  neighbors of $a$ can be made in $\Omega(d_a)$, by simply looking up $adj[a]$ and
-  similarly for checking the presence of an edge. Notice, that depending on how
-  sparse a graph is traversing it can amount to a significant time reduction.
-  Imagine in a tree-traversal algorithm, the neighbors of each node are retrieved,
-  then we would have $\Omega(m) = \Omega(n)$ time for adjacency lists while
-  $\Omega(n^2)$ for matrixes.
+  neighbors of $a$ or checking the presence of an edge can be made in
+  $\Theta(d_a)$, by simply looking up $adj[a]$. Notice, that depending on how
+  sparse a graph is, traversing it can amount to a significant time reduction
+  when using the adjancency list as opposed to the matrix representation.
+  Imagine in a tree-traversal algorithm where the neighbors of each node are retrieved,
+  then we would spend $\Theta(m) = \Theta(n)$ time for adjacency lists while
+  $\Theta(n^2)$ for matrixes.
 
   For a practical example on the complexity implications of the two implementations
   the LeetCode solution and discution for [[https://leetcode.com/problems/frog-position-after-t-seconds/][Frog Position After T Seconds - 1377]]
@@ -35,7 +37,7 @@
 ** Connected components
   The definition of a connected component is the set of nodes reacheable from a
   particular initial node $n_i$, one can also think about a connected component as
-  the set of nodes in a binary search tree produced by a complete execution of BFS
+  the set of nodes in a search tree produced by a complete execution of BFS
   or DFS algorithm. Another way to understand how one can explore nodes on a
   graph $G=(E, N)$ forming a connected component $C_{0}$ starting at node $0$ is:
   
@@ -142,10 +144,13 @@
   
   that is the heap above but with the node with value 11 replaced by a node with
   value 7. To correct this behaviour, and put the value 7 in it's correct position
-  there is a procedure known as "max/min-heapify", a recursive call that find the
-  $max(heap[2],heap[4],heap[5]) = heap[5]$, switches the value of $heap[5] = 10$
-  with $heap[2] = 7$, and repeat to fing the "$max(heap[5],heap[10]) = heap[10]$"
-  and further switch the values of $heap[10] = 10$ and $heap[5] = 7$. So finally,
+  there is a procedure known as "max/min-heapify". Assuming a max-heap, this
+  recursive procedure finds the max value between the parent, left and right child,
+  say the max value is in the right child, then it swaps the value of right child and
+  parent, and call max-heapify again with the right child as parent. In the example above,
+  $max(heap[2](7),heap[4](8),heap[5](10)) = heap[5]$, then switch the value of
+  $heap[5] = 10$ with $heap[2] = 7$, and repeat. The "$max(heap[5](7),heap[10](10)) = heap[10]$"
+  and proceeds by switching the values of $heap[10] = 10$ and $heap[5] = 7$. So finally,
   $heap[10] = 7$ and the node with value 7 will be leaf.
 
 
@@ -156,14 +161,14 @@
   $G$ to have one of it's edges connect nodes from $A$ to $A$. But what
   characteristic this graph must have to not be bipartite?
   
-  Imagine we have a linear path $p_{1-x}$ that connects node 1 to node $x$, and
-  we are trying to ensure bipartiteness , if $n_1$ is in $A$, then $n_2$ is
-  necessarily in $B$, and node $n_3$ in $A$, and so forth. If any node
-  $n_{2*i+1}$ for $i>1$ has an edge back to $n_1$ then $G$ is not bipartite. That
-  is, if there is an odd-sized cycle.
+  Imagine we have a linear path $p_{1-x} = \{n_1, n_2, ... n_x\}$ that connects
+  node $n_1$ to node $n_x$, and we are trying to ensure bipartiteness ,
+  if $n_1$ is in $A$, then $n_2$ is necessarily in $B$, and node $n_3$
+  in $A$, and so forth. If any node $n_{2*i+1}$ for $i>1$ has an edge
+  back to $n_1$ then $G$ is not bipartite. That is, if there is an odd-sized cycle.
   
   To check bipartiteness in a single connected component one could just use BFS
-  and add assign each node in odd layers to $A$ and those in even layers $B$,
+  and assign each node in odd layers to $A$ and those in even layers $B$,
   on the end one could just check for each edge in $G$ if it's ends are in
   different sets. If a node in $L_{2i}$ has an edge to any node in $L_{2j}$ or
   if a node in $L_{2i+1}$ has an edge to a node in $L_{2j+1}$ then there is an
@@ -175,12 +180,12 @@
   the root $n_i \in L_1$ until $n_j \in L_2$ then back to $n_i$. There is a
   property of BFS trees $T$ which states that every pair of nodes $(x,y)$
   which have an edge between themselves are either in adjacent layers or in the
-  same layer in a BFS tree. If for every edge in the odd-sized loop the nodes
-  are in adjacent edges then the loop cannot be odd-sized. To check this property
-  let's pick the node furthest away from $n_i$, $n_h \in L_h$. If $n_h$ only
-  has nodes with adjacent edges and is the highest node, then it must make the
-  way back to $n_j$ through an edge in $L_{h-1}$ yielding a loop of size
-  $h+1+h-1 = 2h$ which by contradiction is not an odd-sized loop. Therefore
+  same layer in a BFS tree. If for every edge in the odd-sized loop adjacent nodes
+  are in adjacent layers then the loop cannot be odd-sized. To check this property
+  let's pick the an arbitraty node, $n_h \in L_h$. If $n_h$ only has edges in
+  adjacent layer, then it must make the way back to $n_i$ through an edge
+  in $L_{h-1}$ or in $L_{h+1}$ yielding a loop of size $h+1+h-1 = 2h$ or
+  $h+1+h+1 = 2(h+1)$ which by contradiction is not an odd-sized loop. Therefore
   an odd-sized loop node must have an edge between nodes in the same layer, hence,
   not bipartite as those nodes would be in the same set.
   
@@ -276,7 +281,7 @@
   *proof:* let's first prove that G has a root, and assume that G is a DAG, and
   that there for every $n$ in G, $n$ has an incomming node. Imagine we have a DAG
   with $k$ nodes, and we pick any node $n_i$ of G, then this node must have an
-  incomming node $n_{i+1}. Now, $n_{i+1}$ must have an incomming node and it must
+  incomming node $n_{i+1}$. Now, $n_{i+1}$ must have an incomming node and it must
   not be $n_i$, as G is a DAG, say the incomming node is $n_{i+2}$. This leads
   us to be able to pick infinitely many nodes out of G, which are not previously
   seen, which clearly contradicts the fact that G has a finite size $k$. Hence,
@@ -294,7 +299,7 @@
   The induction hypothesis states that a DAG with $n$ nodes have a topological order.
   Thus, it is left to prove in the induction step if a DAG G with $n+1$ nodes
   also have such sort. G must have a root as shown before, so we have the first
-  node of the sort, the rest of the graph G-{$n_s$} has size $n$ and as mentioned
+  node of the sort, the rest of the graph G $-$ {$n_{root}$} has size $n$ and as mentioned
   in the induction hypothesis has a topological order. Therefore, G has a topological
   order.
   
