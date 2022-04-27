@@ -1,0 +1,104 @@
+#+TITLE: Configuring Kafka for Production
+#+SUBTITLE: Data Engineering Topics
+#+INCLUDE: "../navbar.html" export html
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+
+* Hadoop
+  The main benefit of using hadoop is the increase of data transfer rate (speed)
+  which is the amount of bytes transfered over a second from place A to place B.
+  Imagine we would like to make an operation on 10 TB of data stored in disk,
+  the current SSD drive on my 2021 Mac OS can read 3GB per second, that's quite
+  fast but that would still take roughly an hour to read all of the data. Imagine
+  if we would be able to have 10 of such SSD drives, each reading 1 TB worth
+  of data, then it would only take instead 5 minutes to read all of the 10 TB of
+  data. That's the power of hadoop, it provides a framework for distributed
+  storage and the processing of massive amounts of data.
+
+  The two main components of Hadoop are emerge out of the two challenges when
+  performing computation on distributed network of machines. The first one, is
+  that as the size of the network increases as does the likelihood of failure
+  in any one of it's nodes, therefore, Hadoop has it's own strategy for making
+  the computation fault-tolerant with the Hadoop Distributed Filesystem (HDFS).
+  Secondly, in order to provide the computation for the complete data, the result
+  yielded by each individual machine have to be combined with eachother. Hadoop
+  provides a programming model called MapReduce that abstracts the problem of
+  dealing with I/O operations by transforming it into a computation over sets of
+  keys and values.
+
+  
+** Hadoop Distributed Filesystem
+   The Hadoop Distributed Filesystem (HDFS) is a fault-tolerant distributed data structure
+   that the Hadoop user uses to control how data is stored and retrieved from hardware.
+   HDFS is a filesystem designed for storing very large files with streaming data
+   access patterns, running on clusters of commodity hardware. That means that
+   HDFS is designed for storing files that have hundreds of megabytes up to
+   terabytes of data where the usecase is writing once and reading the whole or most
+   of the data and performing some operation rather than performing an operation
+   on a single record. That means a batch or stream data access where high-throughput,
+   that is, the amount of bytes read per second is more important then low-latency the
+   delay of performing a single operation. HDFS supports many physical storage
+   media such as SSD, memory, and disk, however, as we are talking about commodity
+   hardware the default storage type is disk.
+
+   The Hadoop filesystem namespace is like any traditional tree-like hierarchical
+   file organization where users can create and delete directories as well as
+   store files in them. Like other file system the user can also move, rename,
+   create and delete files as well as access permissions.
+
+*** Main Concepts
+**** HDFS Block 
+     A HDFS file is broken into many blocks of around 128 MBs. The advantage of
+     breaking a file into blocks is that a file can be larger than any single disk
+     in the network, in fact a single file can consist of blocks distributed accross
+     every node in the network.
+**** Namenodes and Datanodes
+     HDFS has a master/slave architecture, where namenodes are the master which
+     manages the filesystem namespace and regulates access by clients to files.
+     Namenodes are responsible for filesystem operations like create, delete,
+     open or close files. Datanodes are the slaves who store and retrive
+     blocks on behalf of the namenode or client. For example, they perform
+     operation such as creation, deletion and replication of blocks under the
+     command of the namenode. They also often report the list blocks they are
+     storing back to the namenode.
+
+     Let's dive in a bit more deep. Namenodes maintains the filesystem namespace
+     described above, as well as the related metadata for all files and directories.
+     This information is stored persistently on the local disk in the form of two files:
+     the *FsImage* and the *EditLog*. Namenodes uses a transaction log to
+     persistently record every change that occurs to the filesystem namespace or
+     it's metadata. For example, whenever a file is created, the replication policy
+     of a file or the access rights are change the EditLog will record it.
+     Interestingly, the *FsImage* file store exactly the same information, the
+     filesystem namespace as well as the mapping of files to blocks, that is in which
+     datanodes and which blocks of a particular file are stored.
+
+     The natural question is why would HDFS redundantly store the same information
+     persistently on two files? To answer this we have to understand the concept of
+     *checkpoints*.
+     
+     //""The purpose of a checkpoint is to ensure that HDFS has a consistent view of the filesystem
+     metadata by taking a snapshot of the filesystem metadata and storing it to FsImage."" -- Apache Hadoop 3.3.2 Documentation//
+
+     Checkpoints are normally triggered when a namenode starts up, although it can
+     also be triggered on a user-defined period. Concretely, each transaction on the
+     EditLog is read and applied to the in-memory representation of the FsImage, when
+     all of the log is read, HDFS overwrites the FsImage and truncates the EditLog,
+     as they are represented in the FsImage. The advantage having FsImage and EditLog
+     is that although it is really efficient to read the in-memory filesystem
+     details from FsImage, it is really slow to write to it. Therefore, we use an
+     append-only log with fast writes for accumulating changes to the filesystem
+     namespace and after some interval or when reaching a specific number of transactions
+     we apply those changes to the FsImage.
+
+     Datanodes store HDFS blocks on files locally, however, it is not aware of the
+     HDFS files. Notice that the files stored in the datanodes are not the same thing
+     as HDFS files, but rather just the media through which HDFS blocks are stored.
+     Datanodes does not store all files in a single directory, as in many OS distributions
+     there is a limit to the amount of files per directory, so it uses a heuristic for
+     how to distribute files in local directories.
+     
+     
+* References
+  + Apache Hadoop 3.3.2 Documentation, accessed in April 2022, https://hadoop.apache.org/docs/current/
+  + White, Tom (2009). Hadoop: The Definitive Guide. O'Reilly Media, Inc.
