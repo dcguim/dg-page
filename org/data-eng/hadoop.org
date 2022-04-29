@@ -1,4 +1,4 @@
-#+TITLE: Configuring Kafka for Production
+#+TITLE: Hadoop with examples
 #+SUBTITLE: Data Engineering Topics
 #+INCLUDE: "../navbar.html" export html
 #+OPTIONS: toc:nil
@@ -26,7 +26,21 @@
   dealing with I/O operations by transforming it into a computation over sets of
   keys and values.
 
-  
+** Installation
+   I would suggest to firstly hadoop with a single datanode using this git [[https://github.com/big-data-europe/docker-hadoop][repo]].
+   On a clean docker environment the $docker compose up$ should trigger this
+   docker compose file]] and run smoothly by bringing all containers to a
+   healthy state.
+   It's worth to skim through the $hadoop.env$ file and checking the configurations
+   for the cluster. For instance notice that the first config:
+   #+begin_src shell
+   CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+   #+end_src
+   This sets the default filesystem for hadoop. This hdfs URI is used by clients
+   and the hadoop daemon to identify the address of the namenode, which will
+   manage most of the operations in the hadoop cluster. Those configurations should
+   be referred to later in this tutorial.
+   
 ** Hadoop Distributed Filesystem
    The Hadoop Distributed Filesystem (HDFS) is a fault-tolerant distributed data structure
    that the Hadoop user uses to control how data is stored and retrieved from hardware.
@@ -96,9 +110,191 @@
      as HDFS files, but rather just the media through which HDFS blocks are stored.
      Datanodes does not store all files in a single directory, as in many OS distributions
      there is a limit to the amount of files per directory, so it uses a heuristic for
-     how to distribute files in local directories.
-     
-     
+     how to distribute files in local directories. Datanodes also scans all the
+     HDFS data blocks on its filesystem and report back to the namenode, this report
+     is called *BlockReport*.
+**** Safemode
+     Namenode enters the safemode on startup during this time replication of blocks
+     does not occur. The namenode receives HeartBeat and and *BlockReport* from
+     datanodes, each block must have a /minimum number of replicas/ to avoid data loss
+     on the event of failure. A block is considered /safely replicated/ when it
+     has reached the minimum number of replicas. After a configurable percentage
+     of the the blocks are safely replicated the namenode exists safe mode. It then
+     determines which blocks have fewer than the specified amount of replicas and
+     replicates those to datanodes.
+*** Command-Line Interface
+    Firstly, one can spin up a bash session in the namenode with $docker exec -it$
+    and type $hadoop fs --help$ and notice that the commands available have a big
+    intersection with usual linux filesystem commands like, "cat", "ls", "mkdir",
+    "touch", "mv", "rm", "rmdir", "cp", "chmod", "chown", "cat", ... .
+    For instance if we would like to copy a file located in the namenode local
+    filesystem to the hadoop filesystem we could use:
+    #+begin_src shell
+    hadoop fs -put local/file.txt hdfs://namenode:9000/user/
+    #+end_src
+    because we have configured the $fs.default.name$ configuration we could omit
+    the first part:
+    #+begin_src shell
+    hadoop fs -put local/file.txt /user/
+    #+end_src
+    to get files in the hadoop filesystem back to the local system than:
+    #+begin_src shell
+    hadoop fs -get /user/file.txt local
+    #+end_src
+    Similarly one could use the commands $hadoop$ $fs$ $-copyFromLocal$ or $-copyToLocal$.
+    Notice also that the operations with $hadoop$ $fs$ would be interchangeable with
+    those of $hdfs$ $dfs$, as in this case we only care about th HDFS filesystem.
+    The only difference between these two commands is that $haddop fs$ can be
+    used for different file systems like "Local FS", "FTP", and "S3" whereas
+    $hdfs dfs$ is constrained to the HDFS filesystem.
+** MapReduce
+   MapReduce can be understood as programming model and a software framework that
+   enables one to process massive amounts of data. It's built so the processing
+   can take place in commodity hardware in a fault tolerant manner. This
+   processing has a map phase and a map function and a reduce phase with a reduce
+   function.
+*** Setup of example
+    The best way to illustrate this is with an example. Let's count the amount of
+    words in the first part of classic literary work Faust from Johan Wolfgang
+    von Goethe which are available as [[https://www.gutenberg.org/files/2229/2229-0.txt][first part]], abd [[https://www.gutenberg.org/cache/epub/2230/pg2230.txt][second part]] in the Project
+    Gutenberg. We would also need to download the jar with the hadoop MapReduce
+    word count application from the [[https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-mapreduce-examples/3.2.1/hadoop-mapreduce-examples-3.2.1-sources.jar][maven repo]] and also copy to your the home
+    folder on the namenode:
+
+    #+begin_src shell
+    docker cp faust-p1.txt namenode:/home
+    docker cp faust-p2.txt namenode:/home
+    docker cp hadoop-mapreduce-examples-3.2.1-sources.jar namenode:/home
+    #+end_src
+
+    Now we can create an input folder in the HDFS filesystem and store two
+    downloaded input files there:
+
+    #+begin_src shell
+    hadoop fs -mkdir -p input
+    hadoop fs -put home/faust* input
+    #+end_src
+
+    To start the hadoop mapreduce job execute the following:
+   
+    #+begin_src shell
+    hadoop jar hadoop-mapreduce-examples-3.2.1-sources.jar org.apache.hadoop.examples.WordCount input output
+    #+end_src
+
+    Now one can list the files obtained in the output folder, and the
+    following files should appead:
+
+    #+begin_src shell
+    hadoop fs -ls output
+    Found 2 items
+    -rw-r--r--   3 root supergroup          0 2022-04-28 11:30 output/_SUCCESS
+    -rw-r--r--   3 root supergroup     247450 2022-04-28 11:30 output/part-r-00000
+    #+end_src
+
+    Like in Unix file systems the output of the $ls$ command includes information
+    about the files in a directory. In this case we have, in order, the
+    read write and execute permissions, the number of replicas, the owner of the
+    file, the group, the size of the file in bytes, a last modified timestamp, and
+    finally the filename. The $part-r-00000$ file contains the result expected, that
+    is the occurence count of every single word used in Goethe's Faust. If you
+    are curious of the most frequently used words by Goethe, you could $cat$ the
+    this file, and sort by the count, to fetch the 30 most used words.
+
+    #+begin_src shell
+    hdfs dfs -cat output/part-r-00000 | sort -k2,2n -t $'\t'  | tail -30
+    #+end_src
+
+    Clearly a bunch of German prepositions and pronouns :)
+* MapReduce theory
+  Although we peaked MapReduce in action  to count the words we learned few
+  about it's functioning. Let's go through some facts and terminology, a MapReduce
+  job is a unit of work consisting of an input data, the MapReduce program (the jar)
+  and configuration information. Hadoop runs by dividing jobs into map and reduce
+  tasks.
+
+  There are two nodes that control the execution process, *jobtrackers* and
+  *tasktrackers*. Jobtrackers break a job into tasks and schedule them on
+  tasktrackers which in turn execute the tasks, if a task fails the jobtrackers
+  reschedule the task in another tasktracker. Hadoop breaks down the input file
+  into input splits, as a rule of thumb a good split size is around 64 to 128 MBs.
+  The map tasks are schedules the in the same node (or as close as possible)
+  where the input split is stored. This is called /data locality optimization/
+  it simply means that it attempts to save cluster bandwidth. The reduce task
+  don't have this optimization as the output of all the map tasks are sorted and
+  sent to the single node who will perform the reduce task, the ouput of which
+  unlike the ouput of the map task, will be saved into HDFS for reliability.
+
+  Let's try to understand how it did worked in this last example by looking in
+  the source code of the Map and the Reduce function, the code is available in
+  the [[https://hadoop.apache.org/docs/r3.3.2/hadoop-mapreduce-client/hadoop-mapreduce-client-core/MapReduceTutorial.html][Apache Hadoop website]] used to bake the jar we downloaded.
+
+  #+begin_src java
+  public static class TokenizerMapper extends Mapper<Object, Text, Text, IntWritable>{
+
+      private final static IntWritable one = new IntWritable(1);
+      private Text word = new Text();
+        
+      public void map(Object key, Text value, Context context)
+              throws IOException, InterruptedException {
+          StringTokenizer itr = new StringTokenizer(value.toString());
+          while (itr.hasMoreTokens()) {
+             word.set(itr.nextToken());
+             context.write(word, one);
+          }
+      }
+  }
+  #+end_src
+  Notice that the $TokenizerMapper$ inherits from the Mapper class with four objects
+  corresponding to the type of the input key, input value, output key and output
+  value respectively. To confirm this you can notice that the type of the first
+  two parameters of the $map$ function is the first and second types, namely
+  Object and Text. Hadoop has it's own types which are respective to Java types
+  Test to String, IntWritable to Integer. Additionally a Context is passed a
+  parameter to the $map$ function which is where one should write the output to.
+  The class StringTokenizer simply allows one to break a string into tokens, or
+  words. So we can think of it transforming a phrase into a list of words which
+  can be read while $itr.hasMoreTokens()$, converting tokens into $Text$
+  and adding into context with the IntWritable one.
+
+  Now let's check the reducer:
+
+  #+begin_src java
+  public static class IntSumReducer extends Reducer<Text,IntWritable,Text,IntWritable> {
+      private IntWritable result = new IntWritable();
+      
+      public void reduce(Text key, Iterable<IntWritable> values, Context context)
+              throws IOException, InterruptedException {
+          int sum = 0;
+          for (IntWritable val : values) {
+            sum += val.get();
+          }
+          result.set(sum);
+          context.write(key, result);
+      }
+  }
+  #+end_src
+  Before analysing the reducer, there is an unmentioned step in-between the shuffle
+  phase this step aggregates all values with the same key. So for instance if the
+  word "der" appears multiple times the reducer would receive rather an array
+  (in this case an "$Iterable$") like $\{ der : [1, 1, 1, ...]\}$.
+
+  Getting back to the reducer code the $IntSumReducer$ has input and output types
+  Text for keys and IntWritable for values. However, as the input is shuffled
+  the parameters of the $reduce$ function is rather a Text as key and an
+  $Iterable<IntWritable>$ as value. The code itself is quite straighforward, simply
+  add up the values in the iterable andp pack it in the context with the same key.
+
+  As an overview, each file became the input of a map job which produced a key-value
+  "(word, one)" as output, this output was shuffled and across both files and became
+  "(word, [1,1,1])" with the amount of occurrence for the both Faust parts. Moreover,
+  the shufled output was fed into the reducer which counted the amount of elements
+  in each array and flushed out to the output folder.
+  
+#+begin_export html
+<img id="mapreduce-example" src="/static/data-eng/mapreduce-example.png"/>
+<p>Figure 2-3. White, Tom (2009). Hadoop: The Definitive Guide.</p>
+#+end_export
+  
 * References
   + Apache Hadoop 3.3.2 Documentation, accessed in April 2022, https://hadoop.apache.org/docs/current/
   + White, Tom (2009). Hadoop: The Definitive Guide. O'Reilly Media, Inc.
