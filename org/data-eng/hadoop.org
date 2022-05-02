@@ -123,8 +123,8 @@
      determines which blocks have fewer than the specified amount of replicas and
      replicates those to datanodes.
 *** Command-Line Interface
-    Firstly, one can spin up a bash session in the namenode with $docker exec -it$
-    and type $hadoop fs --help$ and notice that the commands available have a big
+    Firstly, one can spin up a bash session in the namenode with $docker$ $exec$ $-it$
+    and type $hadoop$ $fs$ $--help$ and notice that the commands available have a big
     intersection with usual linux filesystem commands like, "cat", "ls", "mkdir",
     "touch", "mv", "rm", "rmdir", "cp", "chmod", "chown", "cat", ... .
     For instance if we would like to copy a file located in the namenode local
@@ -205,96 +205,190 @@
     #+end_src
 
     Clearly a bunch of German prepositions and pronouns :)
-* MapReduce theory
-  Although we peaked MapReduce in action  to count the words we learned few
-  about it's functioning. Let's go through some facts and terminology, a MapReduce
-  job is a unit of work consisting of an input data, the MapReduce program (the jar)
-  and configuration information. Hadoop runs by dividing jobs into map and reduce
-  tasks.
+*** MapReduce theory
+    Although we peaked MapReduce in action  to count the words we learned few
+    about it's functioning. Let's go through some facts and terminology, a MapReduce
+    job is a unit of work consisting of an input data, the MapReduce program (the jar)
+    and configuration information. Hadoop runs by dividing jobs into map and reduce
+    tasks.
 
-  There are two nodes that control the execution process, *jobtrackers* and
-  *tasktrackers*. Jobtrackers break a job into tasks and schedule them on
-  tasktrackers which in turn execute the tasks, if a task fails the jobtrackers
-  reschedule the task in another tasktracker. Hadoop breaks down the input file
-  into input splits, as a rule of thumb a good split size is around 64 to 128 MBs.
-  The map tasks are schedules the in the same node (or as close as possible)
-  where the input split is stored. This is called /data locality optimization/
-  it simply means that it attempts to save cluster bandwidth. The reduce task
-  don't have this optimization as the output of all the map tasks are sorted and
-  sent to the single node who will perform the reduce task, the ouput of which
-  unlike the ouput of the map task, will be saved into HDFS for reliability.
+    There are two nodes that control the execution process, *jobtrackers* and
+    *tasktrackers*. Jobtrackers break a job into tasks and schedule them on
+    tasktrackers which in turn execute the tasks, if a task fails the jobtrackers
+    reschedule the task in another tasktracker. Hadoop breaks down the input file
+    into input splits, as a rule of thumb a good split size is around 64 to 128 MBs.
+    The map tasks are schedules the in the same node (or as close as possible)
+    where the input split is stored. This is called /data locality optimization/
+    it simply means that it attempts to save cluster bandwidth. The reduce task
+    don't have this optimization as the output of all the map tasks are sorted and
+    sent to the single node who will perform the reduce task, the ouput of which
+    unlike the ouput of the map task, will be saved into HDFS for reliability.
 
-  Let's try to understand how it did worked in this last example by looking in
-  the source code of the Map and the Reduce function, the code is available in
-  the [[https://hadoop.apache.org/docs/r3.3.2/hadoop-mapreduce-client/hadoop-mapreduce-client-core/MapReduceTutorial.html][Apache Hadoop website]] used to bake the jar we downloaded.
+    Let's try to understand how it did worked in this last example by looking in
+    the source code of the Map and the Reduce function, the code is available in
+    the [[https://hadoop.apache.org/docs/r3.3.2/hadoop-mapreduce-client/hadoop-mapreduce-client-core/MapReduceTutorial.html][Apache Hadoop website]] used to bake the jar we downloaded.
 
-  #+begin_src java
-  public static class TokenizerMapper extends Mapper<Object, Text, Text, IntWritable>{
+    #+begin_src java
+    public static class TokenizerMapper extends Mapper<Object, Text, Text, IntWritable>{
 
-      private final static IntWritable one = new IntWritable(1);
-      private Text word = new Text();
+	private final static IntWritable one = new IntWritable(1);
+	private Text word = new Text();
         
-      public void map(Object key, Text value, Context context)
-              throws IOException, InterruptedException {
-          StringTokenizer itr = new StringTokenizer(value.toString());
-          while (itr.hasMoreTokens()) {
-             word.set(itr.nextToken());
-             context.write(word, one);
-          }
-      }
-  }
-  #+end_src
-  Notice that the $TokenizerMapper$ inherits from the Mapper class with four objects
-  corresponding to the type of the input key, input value, output key and output
-  value respectively. To confirm this you can notice that the type of the first
-  two parameters of the $map$ function is the first and second types, namely
-  Object and Text. Hadoop has it's own types which are respective to Java types
-  Test to String, IntWritable to Integer. Additionally a Context is passed a
-  parameter to the $map$ function which is where one should write the output to.
-  The class StringTokenizer simply allows one to break a string into tokens, or
-  words. So we can think of it transforming a phrase into a list of words which
-  can be read while $itr.hasMoreTokens()$, converting tokens into $Text$
-  and adding into context with the IntWritable one.
+	public void map(Object key, Text value, Context context)
+		throws IOException, InterruptedException {
+            StringTokenizer itr = new StringTokenizer(value.toString());
+            while (itr.hasMoreTokens()) {
+               word.set(itr.nextToken());
+               context.write(word, one);
+            }
+	}
+    }
+    #+end_src
+    Notice that the $TokenizerMapper$ inherits from the Mapper class with four objects
+    corresponding to the type of the input key, input value, output key and output
+    value respectively. To confirm this you can notice that the type of the first
+    two parameters of the $map$ function is the first and second types, namely
+    Object and Text. Hadoop has it's own types which are respective to Java types
+    Test to String, IntWritable to Integer. Additionally a Context is passed a
+    parameter to the $map$ function which is where one should write the output to.
+    The class StringTokenizer simply allows one to break a string into tokens, or
+    words. So we can think of it transforming a phrase into a list of words which
+    can be read while $itr.hasMoreTokens()$, converting tokens into $Text$
+    and adding into context with the IntWritable one.
 
-  Now let's check the reducer:
+    Now let's check the reducer:
 
-  #+begin_src java
-  public static class IntSumReducer extends Reducer<Text,IntWritable,Text,IntWritable> {
-      private IntWritable result = new IntWritable();
+    #+begin_src java
+    public static class IntSumReducer extends Reducer<Text,IntWritable,Text,IntWritable> {
+	private IntWritable result = new IntWritable();
       
-      public void reduce(Text key, Iterable<IntWritable> values, Context context)
-              throws IOException, InterruptedException {
-          int sum = 0;
-          for (IntWritable val : values) {
-            sum += val.get();
-          }
-          result.set(sum);
-          context.write(key, result);
-      }
-  }
-  #+end_src
-  Before analysing the reducer, there is an unmentioned step in-between the shuffle
-  phase this step aggregates all values with the same key. So for instance if the
-  word "der" appears multiple times the reducer would receive rather an array
-  (in this case an "$Iterable$") like $\{ der : [1, 1, 1, ...]\}$.
+	public void reduce(Text key, Iterable<IntWritable> values, Context context)
+		throws IOException, InterruptedException {
+            int sum = 0;
+            for (IntWritable val : values) {
+              sum += val.get();
+            }
+            result.set(sum);
+            context.write(key, result);
+	}
+    }
+    #+end_src
+    Before analysing the reducer, there is an unmentioned step in-between the shuffle
+    phase this step aggregates all values with the same key. So for instance if the
+    word "der" appears multiple times the reducer would receive rather an array
+    (in this case an "$Iterable$") like $\{ der : [1, 1, 1, ...]\}$.
 
-  Getting back to the reducer code the $IntSumReducer$ has input and output types
-  Text for keys and IntWritable for values. However, as the input is shuffled
-  the parameters of the $reduce$ function is rather a Text as key and an
-  $Iterable<IntWritable>$ as value. The code itself is quite straighforward, simply
-  add up the values in the iterable andp pack it in the context with the same key.
+    Getting back to the reducer code the $IntSumReducer$ has input and output types
+    Text for keys and IntWritable for values. However, as the input is shuffled
+    the parameters of the $reduce$ function is rather a Text as key and an
+    $Iterable<IntWritable>$ as value. The code itself is quite straighforward, simply
+    add up the values in the iterable andp pack it in the context with the same key.
 
-  As an overview, each file became the input of a map job which produced a key-value
-  "(word, one)" as output, this output was shuffled and across both files and became
-  "(word, [1,1,1])" with the amount of occurrence for the both Faust parts. Moreover,
-  the shufled output was fed into the reducer which counted the amount of elements
-  in each array and flushed out to the output folder.
+    As an overview, each file became the input of a map job which produced a key-value
+    $\{ word : one \}$ as output, this output was shuffled and across both files and became
+    $\{ word : [1,1,1] \}$ with the amount of occurrence for the both Faust parts. Moreover,
+    the shufled output was fed into the reducer which counted the amount of elements
+    in each array and flushed out to the output folder.
   
-#+begin_export html
-<img id="mapreduce-example" src="/static/data-eng/mapreduce-example.png"/>
-<p>Figure 2-3. White, Tom (2009). Hadoop: The Definitive Guide.</p>
-#+end_export
-  
+  #+begin_export html
+  <img id="mapreduce-example" src="/static/data-eng/mapreduce-example.png"/>
+  <p>Figure 2-3. White, Tom (2009). Hadoop: The Definitive Guide.</p>
+  #+end_export
+** The combiner function
+   The purpose of the combiner function is to reduce the bandwidth between the
+   nodes running the map tasks and the node running the reduce step which could
+   ultimately make the hadoop job faster. The combiner function is simply an
+   optimization step that reduce the amount of data shuffled between mappers and
+   reducer. The combiner function could be for example a reduce task that runs
+   on the output of the map task in the same node as the map task. In this case
+   imagine we have the in the first and second split, respectively:
+   + $\{ der : [1,1,1], aber : [1,1], deshalb : [1], das : [1,1,1,1] \}$
+   + $\{ der : [1,1], Sie : [1,1,1,1], weil : [1,1,1], deswegen : [1,1], das : [1,1] \}$
+
+   If we simply use the $IntSumReducer$ class as a combiner function to reduce
+   the output in each split:
+
+   + $\{ der : [3], aber : [2], deshalb : [1], das : [4] \}$
+   + $\{ der : [2], Sie : [4], weil : [3], deswegen : [2], das : [2] \}$
+
+   This two input splits would then serve as the input to the overall reduce function
+   which would in turn produce the result:
+
+   + $\{ der : [5], aber : [2], Sie : [4], deshalb: [1], weil : [3], deswegen : [2], das : [6] \}$
+
+   It's not always so easy to define the combiner function and sometimes can be
+   impossible to do so without changing the semantics of the hadoop job. The function
+   must be associative and commutative in order for the reducer to qualify as a
+   good combiner function. Therefore this step must be selected carefully.
+   
+** Hadoop Streaming
+   If one would like to use languages other then Java for writing MapReduce tasks
+   Hadoop Streaming might be a good alternative. Hadoop Streaming make use of the
+   Unix standard input and output streams, stdin and stdout. The map input data
+   is passed over stdin, the map function processes line by line and writes to stdout.
+   The ouput of the mapper should be key-value pairs separated by tabs. This output
+   will be sorted by key and passed to the reducer which writes the final result to
+   stdout.
+*** Hadoop Streaming example with Python
+    In order to run python in the docker containers run the following command in
+    the hadoop containers:
+    #+begin_src shell
+    docker exec -it namenode bash -c "apt update && apt install python3 -y"
+    docker exec -it datanode bash -c "apt update && apt install python3 -y"
+    docker exec -it resourcemanager bash -c "apt update && apt install python3 -y"
+    docker exec -it nodemanager bash -c "apt update && apt install python3 -y"
+    #+end_src
+    To start with we can use the following extremely simple python mapper script:
+    #+begin_src python
+    #!/usr/bin/env python3
+    # -*-coding:utf-8 -*
+    import sys
+    
+    for line in sys.stdin:
+        words = line.split()
+        for w in words:
+            print("{}\t1".format(w))
+    #+end_src
+
+    For the reducer we could use:
+    
+    #+begin_src python
+    #!/usr/bin/env python3
+    # -*-coding:utf-8 -*
+    import sys
+    
+    lastWord = ""
+    wordOcc = 0
+    for keyvalue in sys.stdin:
+        word, counts = keyvalue.strip().split("\t")
+        if lastWord == word:
+           wordOcc += 1
+        else:
+           if lastWord != "":
+               print("{}\t{}".format(lastWord, wordOcc))
+           lastWord = word
+           wordOcc = 1
+    #+end_src
+
+    We could wire the mapper and reducer to test the output like this:
+    #+begin_src shell
+    echo "The quick brown fox jumped over the lazy dog. 
+    The lazy dog remained asleep while the quick brown fox disappeared into the forest."
+    | python3 cw-mapper.py | sort | python3 cw-reducer.py
+    #+end_src
+    If the program runs as expected one can copy the two python file to the container
+    and ensure they are runnable with $chmod$ $+x$. Finally run the following command
+    to start the hadoop streaming job. Do add the correct version of your hadoop installation
+    on the path to the jar:
+    #+begin_src shell
+    hadoop jar /opt/hadoop-3.2.1/share/hadoop/tools/lib/hadoop-streaming-3.2.1.jar
+    -file /home/cw-mapper.py -mapper /home/cw-mapper.py
+    -file /home/cw-reducer.py -mapper /home/cw-reducer.py
+    -input input/* -output output
+    #+end_src
+
+    If everything ran smoothly than the file *"output/part-00000"* should exist in
+    the hadoop filesystem with the same content as in the [[Setup of example]] section.
 * References
   + Apache Hadoop 3.3.2 Documentation, accessed in April 2022, https://hadoop.apache.org/docs/current/
   + White, Tom (2009). Hadoop: The Definitive Guide. O'Reilly Media, Inc.
