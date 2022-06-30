@@ -6,7 +6,43 @@
 #+HEADER: :results output silent :headers '("\\usepackage{tikz}")
 #+HEADER: :results output silent :headers '("\\usepackage{pgfplots}")
 
-* LeetCode: [[/https://leetcode.com/problems/queue-reconstruction-by-height][Queue Reconstruction by Height - 406]]
+* LeetCode: [[https://leetcode.com/problems/binary-search-tree-iterator/][Binary Search Tree Iterator - 173]]
+
+#+begin_src java
+class BSTIterator {
+    
+    ArrayDeque<TreeNode> traversal;
+    
+    private void IOenqueue(TreeNode cur){
+        while (cur.left != null){
+            cur = cur.left;
+            traversal.offerLast(cur);
+        }
+    }
+    
+    public BSTIterator(TreeNode root) {
+        traversal = new ArrayDeque<TreeNode>();
+        traversal.offer(root);
+        IOenqueue(root);
+    }
+    
+    public int next() {
+        TreeNode nextNode = traversal.pollLast();
+        if (nextNode.right != null) {
+            traversal.offer(nextNode.right);
+            IOenqueue(nextNode.right);
+        }
+        return nextNode.val;
+    }
+    
+    public boolean hasNext() {
+        if (traversal.peekLast() != null) return true;
+        return false;
+    }
+}
+#+end_src
+
+* LeetCode: [[https://leetcode.com/problems/queue-reconstruction-by-height][Queue Reconstruction by Height - 406]]
    
 #+begin_src java
   class Solution {
@@ -180,6 +216,30 @@ the values back to the queue and updates the value of the existing key. Notice,
 it will take $\le n$ times to find the key plus $\le n$ times to put it back.
 Therefore, the $set$ will also take $O(n)$.
 
+* LeetCode: [[https://leetcode.com/problems/longest-continuous-subarray-with-absolute-diff-less-than-or-equal-to-limit/][Longest Continuous Subarray With Absolute Diff Less Than or Equal to Limit - 1438]]
+#+begin_src java
+class Solution {
+    public int longestSubarray(int[] nums, int limit) {
+        int j = 0, n = nums.length, longest = 0;
+        ArrayDeque<Integer> min = new ArrayDeque<Integer>(n);
+        ArrayDeque<Integer> max = new ArrayDeque<Integer>(n);
+        for (int i=0; i < n; ++i){
+            while (!min.isEmpty() && nums[i] < min.peekFirst()) min.pollFirst();
+            while (!max.isEmpty() && nums[i] > max.peekFirst()) max.pollFirst();
+            min.offerFirst(nums[i]);
+            max.offerFirst(nums[i]);
+            while ((max.peekLast() - min.peekLast()) > limit){
+                if(nums[j] == min.peekLast()) min.pollLast();
+                if(nums[j] == max.peekLast()) max.pollLast();
+                j+=1;
+            }
+            longest = Math.max(longest, i-j+1);
+        }
+        return longest;
+    }
+}
+#+end_src
+
 * LeetCode: [[https://leetcode.com/problems/k-highest-ranked-items-within-a-price-range/][K Highest Ranked Items Within a Price Range - 2146]]
 #+begin_src java
 class Solution {
@@ -293,3 +353,5 @@ class Solution {
   pushing the new added node up the tree until necessary. The mentioned complexity
   is due to the fact the height of the tree has at most size $log_2(n)$. Hence,
   the overall time complexity is O(nlog(n)).
+
+

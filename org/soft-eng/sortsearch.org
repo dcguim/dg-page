@@ -134,11 +134,11 @@ class Solution
 }
 #+end_src
 
-A well-known way of efficiently sorting a linked list is by using merge sort.
+A well-known way for efficiently sorting a linked list is by using merge sort.
 This algorithm works by splitting a linked list in half, sorting each half, and
-then merging the two, taking into advantage that they are already sorted.
+then merging the two, taking into advantage of the fact that each half is already sorted.
 
-The seach space in broken in half at each recursive mergeSort call, additionally
+The search space in broken in half at each recursive mergeSort call, additionally
 one must also merge the two sorted lists. The merge function $M(n=n_1+n_2)$
 takes two head nodes adding up to $n$, at each merge call either $head1 > head2$
 or otherwise, in either case, the smaller head node is kept, and the merge function

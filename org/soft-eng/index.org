@@ -4,25 +4,46 @@
 #+OPTIONS: toc:nil
 #+OPTIONS: num:nil
 #+LaTeX_HEADER: \usepackage{tikz}
+* Purpose
+   There are two main sections: [[*Theory][Theory]] and [[*Programming problems][Programming problems]].
+   
+   The first one consider theoretical aspects of computer science and algorithms,
+   for instance time and space complexity and graph algorithms, as well as proofs
+   of computer science facts. It aims to support readers in the decision-making
+   process when engineering efficient and large-scale systems, as well as provinding
+   an overview of the main concepts of a particular computer science domain, such as
+   graphs. This section is also dedicated to less academicly rigorous areas of
+   computer science such as system design, often seen patterns and components.
 
-* Theory
-** Complexity
-- [[file:bigO.html][Big O Notation]]
-** Graphs
-- [[file:graphs.html][Advanced graph topics]]
-# - Spanning Trees
-# - Matching
-# - Network Flow
-# - Routing
-# - Shortest Path
-* Programming problems
-** Data Structures
-- [[file:arraystring.html][Arrays and strings]]
-- [[file:stackqueue.html][Stacks and queues]]
-- [[file:linkedlists.html][Linked lists]]
-- [[file:hashmaps.html][Hashmaps]]
-- [[file:treesgraphs.html][Trees and graphs]]
-** Algorithms
-- [[file:bitwisemanip.html][Bitwise manipulation]]
-- [[file:sortsearch.html][Sorting and searching]]
-- [[file:dynprog.html][Dynamic programming and recursion]]
+   The second section consists simply of well explained solutions in Java to
+   programming problems from websites such as [[https://leetcode.com/][leetcode]], [[https://www.hackerrank.com/][hacker rank]], and [[https://practice.geeksforgeeks.org/][geeks for geeks]].
+   I believe to solve and to navigate the complexity of such programming problems
+   is a great way to maintain the data structures and algorithms knowledge for
+   software developers, not only when applying for jobs, but as a continuous exercise. 
+
+   The choice of Java is simply because it's OO syntax should be easy for most
+   programmers to understand. As mentioned in the introduction, this blog is all
+   writen in Emacs, which can also function as a great Java IDE, if you would like
+   to run the code in this blog in Emacs, check my blog post on [[file:javaide.html][Emacs Java IDE]].
+   
+** Theory
+*** Complexity
+ - [[file:bigO.html][Big O Notation]]
+*** Graphs
+ - [[file:graphs.html][Advanced graph topics]]
+ # - Spanning Trees
+ # - Matching
+ # - Network Flow
+ # - Routing
+ # - Shortest Path
+** Programming problems
+*** Data Structures
+ - [[file:arraystring.html][Arrays and strings]]
+ - [[file:stackqueue.html][Stacks and queues]]
+ - [[file:linkedlists.html][Linked lists]]
+ - [[file:hashmaps.html][Hashmaps]]
+ - [[file:treesgraphs.html][Trees and graphs]]
+*** Algorithms
+ - [[file:bitwisemanip.html][Bitwise manipulation]]
+ - [[file:sortsearch.html][Sorting and searching]]
+ - [[file:dynprog.html][Dynamic programming and recursion]]

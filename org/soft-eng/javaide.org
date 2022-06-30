@@ -1,0 +1,59 @@
+#+TITLE: Transform Emacs into your Java IDE
+#+SUBTITLE: Emacs Topics
+#+INCLUDE: "../navbar.html" export html
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+#+HEADER: :results output silent :headers '("\\usepackage{tikz}")    
+#+HEADER: :results output silent :headers '("\\usepackage{pgfplots}")
+
+* Intro
+  First to go to the oficial github page of [[https://github.com/emacs-lsp/lsp-java][lsp-java]] and follow the Installation
+  procedure. The goal of this post is to show the functionality of lsp-java and it's
+  satellite packages, this post will not consider Spring, if you are interested in
+  initializing a Spring application check this [[https://xpressrazor.wordpress.com/2020/11/04/java-programming-in-emacs/][java programming in emacs]] post.
+** Configuration for .emacs
+ #+begin_src lisp
+ ;; Load lsp-java
+ (require 'lsp-java)
+ (add-hook 'java-mode-hook #'lsp)
+ ;; support packages
+ (use-package projectile)
+ (use-package flycheck)
+ (use-package yasnippet :config (yas-global-mode))
+ (use-package lsp-mode :hook ((lsp-mode . lsp-enable-which-key-integration))
+   :config (setq lsp-completion-enable-additional-text-edit nil))
+ (use-package lsp-ui)
+ (use-package lsp-java :config (add-hook 'java-mode-hook 'lsp))
+ (use-package dap-mode :after lsp-mode :config (dap-auto-configure-mode))
+ (use-package dap-java :ensure nil)
+ (use-package lsp-treemacs)
+ (use-package helm-core)
+ (use-package helm-lsp :after helm-core)
+ (use-package helm
+   :config (helm-mode))
+ (define-key lsp-mode-map [remap xref-find-apropos] #'helm-lsp-workspace-symbol)
+ #+end_src
+** Generate a maven workspace project
+   Once the maven command-line tool is installed. Generate a $maven-archetype-simple$
+   java project in the desired folder by typing the following:
+   #+begin_src shell
+   mvn archetype:generate -DarchetypeArtifactId=maven-archetype-simple -DarchetypeVersion=1.4 
+   #+end_src
+   Provide your project's additional groupId, artifactId, version details in the
+   interactive prompt. Now you can fire up Emacs and and execute
+   $M-x lsp-workspace-folders-add$ to add the root of the maven project just
+   created to the workspace of lsp-java. Notice on the information bar on the
+   bottom (the mode line) if the jdtls server already have a session connected to
+   it. lsp-java is configured to automatically download and configure the jdtls
+   server, if your $App.java$ file or any of the Emacs buffers connected to your
+   Java project are $disconnected$ run $M-x lsp$ to connect to a session. You can
+   check the lsp sessions with $M-x lsp-describe-session$ to show the tree of
+   buffers connected to your workspace. If any changes are necessary in terms of
+   dependency in your pom.
+** Running the project
+   The project can be ran with $projectile$, but first projectile must point to the
+   correct root folder so that it knows which project to execute, you can do that
+   with $M-x projectile dired$. Moreover, you can run the maven command with
+   $M-x projectile-test-project$ then the maven command of your choice.
+
+

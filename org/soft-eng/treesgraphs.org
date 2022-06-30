@@ -559,8 +559,8 @@ class Solution {
   from node $S$ to every other node in the graph. We will get to the reasons why
   it doesn't work for negative edges later. Dijkstra works by initializing the
   distance to every node, except $S$, with infinity. The algorithm traverse the
-  graph by exploring unexplored nodes, that is, to consider all of the outgoing
-  edge $n_{curr}$ of $cur$ and updating the cost to reach it considering the weight
+  graph by exploring unexplored nodes, that is, to consider all of the neighboring
+  nodes $n_{curr}$ of $cur$ node and updating the cost to reach it considering the weight
   to reach $cur$. Therefore, the algorithm would start with unexplored node $S$
   and look at every of it's neighbors, and each of those neighbors $n_S$ (which have
   cost initially set to infinity), would be updated with the weight of their respective
@@ -572,19 +572,16 @@ class Solution {
   explored, and it is marked closed, that is, it won't be explored again, and the
   same exploration step repeats.
 
-  This is the main assumption of Dijkstra, that after a node $c$ is marked closed it
+  The main assumption of Dijkstra is that after a node $c$ is marked closed it
   is indeed the shortest path from $S$, notice that it makes this assumption without
   considering the whole graph, but only the paths with smallest cost that reaches
   $c$. That is if a node is unexplored and the cost of reaching it is the minimal
-  from the another closed node than it's minimality will not change by adding any
-  other positive weight. However this is not the case when there are negative edges,
+  from a closed node than it's minimality will not change by adding any other
+  positive weight. However this is not the case when there are negative edges,
   in this case, a node could not be marked as closed, as it could be the case that
   it is possible to reach this node through an unexplored edge with higher cost
   which is compensated by negative weight edges, offering a overall total cost. The
-  example bellow shows why this is the case. The algorithm above would explore
-  the starting node 0 and close it, there are no outgoing edges from node 1. Moreover,
-  it would explore node 2, however, it will not update the cost of reaching node 1,
-  as it is already closed. 
+  example bellow shows why this is the case.
 
 #+begin_src latex :exports results :results raw file :file negweightcycle.png :output-dir ../img
   \resizebox{0.4\textwidth}{!}{%
@@ -599,8 +596,11 @@ class Solution {
        }%
 #+end_src
 
-#+RESULTS:
-[[file:../img/negweightcycle.png]]
+  The algorithm above would explore the starting node 0 and close it, then
+  visit the neighbor with smallest cost, node 1, and close it too. Notice,
+  there are no outgoing edges from node 1, so the algorithm would poll the next
+  node in the unexplored priority queue, node 2. However, it will not
+  update the cost of reaching node 1, as it is already closed. 
 
   
 * GeeksForGeeks: [[https://practice.geeksforgeeks.org/problems/negative-weight-cycle3504/1#][Negative weight cycle]]

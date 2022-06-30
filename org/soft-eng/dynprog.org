@@ -6,6 +6,29 @@
 #+HEADER: :results output silent :headers '("\\usepackage{tikz}")
 #+HEADER: :results output silent :headers '("\\usepackage{pgfplots}")
 
+* LeetCode: [[https://leetcode.com/problems/longest-palindromic-substring/][Longest Palindromic Substring - 5]]
+#+begin_src java
+class Solution {
+    public String longestPalindrome(String s) {
+        int n = s.length();
+        String longestPalindrome = "";
+        // dp[i][j] is a palindrome if s[i] == s[j] and
+        // dp[i-1][j-1] is a palindrome
+        boolean[][] dp = new boolean[n][n];
+        // this loop only iterate for half of the dp matrix
+        // as we only care for when i>=j.
+        for (int i=0; i<n; ++i){
+            for (int j=i; j>=0; --j){
+                dp[j][i] = i==j || (s.charAt(j) == s.charAt(i) && (i==j+1 || dp[j+1][i-1]));
+                if (dp[j][i] == true && (i-j+1) > longestPalindrome.length()){
+                    longestPalindrome = s.substring(j,i+1);
+                }
+            }
+        }
+        return longestPalindrome;
+    }
+}
+#+end_src
 * GeeksForGeeks: [[https://practice.geeksforgeeks.org/problems/0-1-knapsack-problem0945/1][0 - 1 Knapsack Problem]]
 #+begin_src java
 class Solution 
@@ -51,6 +74,82 @@ either picking the last value $dp[i][j-1]$, i.e. the value considering the from
 the first to the last item, or $dp[i-wt[j]][j-1] + val[j]$, i.e. by picking the
 jth item. As the jth item has weight $wt[j]$ then the total weight before was
 $i-wt[j]$.
+
+* LeetCode: [[https://leetcode.com/problems/regular-expression-matching/][Regular Expression Matching - 10]]
+#+begin_src java
+class Solution {
+    public boolean isMatch(String s, String p) {
+        int sL = s.length(), pL = p.length();
+        char sI, pJ;
+        // dp[i][j] is the result of isMatch(s.substring(0,i), p.substring(0,j))
+        boolean[][] dp = new boolean[sL+1][pL+1];
+        // an empty pattern matches an empty string
+        dp[0][0] = true;
+        // dp[i][0]: an empty pattern never match an non-empty string
+        // dp[0][j]: the only pattern matching an empty string: (.*.* ...)
+        for(int j=2; j<=pL; j+=2) dp[0][j] = p.charAt(j-1) == '*' && dp[0][j-2];
+        // for the rest the dp matrix the values of dp have the optimal 
+        // substructure property; it can be based on previous values of dp
+        for (int i=1; i<=sL; ++i){
+            for (int j=1; j<=pL; ++j){
+                sI = s.charAt(i-1);
+                pJ = p.charAt(j-1);
+                // either pJ matches a single char [a-z] or
+                // processing the '*' quantifier
+                if (pJ != '*'){
+                    dp[i][j] = (sI == pJ || pJ == '.') && dp[i-1][j-1];
+                } else { // [a-z.]* pattern matches nothing or the s[i] char
+                    dp[i][j] = dp[i][j-2] || ((p.charAt(j-2) == sI || p.charAt(j-2) == '.') && dp[i-1][j]);
+                }
+            }
+        }
+        return dp[sL][pL];
+    }
+}
+#+end_src
+The insight here for using dynamic programming is that we can solve a problem with
+size $(sL+pL)$ with problems of smaller size $(sL-1,pL-1)$ to see this, imagine
+we are at the char 'a' and pattern 'a', regardless of which characters were read
+before we can just claim:
+$isMatch(s,p) = isMatch(s.substring(0, sL-1), s.substring(0, pL-1))$
+
+Which is what the $dp[i][j]$ stores, the intermediate solutions:
+$isMatch(s.substring(0,i), p.substring(0,j))$
+
+As we are using previous values to build current values we have to build a bit of
+cushion to get to a position of defining the value of every $dp[i][j]$ based on previous
+values. For instance an empty pattern matches an empty string so $dp[0][0] = true$.
+An empty pattern however never matches an non-empty string $dp[i][0] = false$, which
+is not necessary to set as the boolean is already automatically initialized with
+$false$. When the string is empty the only non-empty pattern that matches is $[.*]+%
+that is $dp[0][j] = true$ for every even value of $j$. This seems enough at first
+but on a second thought the pattern $abc*$ does not match an empty string and so
+$dp[0][3] = false$ that's because $dp[0][1] = false$, therefore $dp[0][j-2]$ must
+also be true for $dp[0][j]$ to hold.
+
+Once the first row and column are defined, one can proceed to define the rest of $dp$.
+There only two cases to distinguish, either the current pattern char is a quantifier
+which requires special handling or $p[j] == [a-z.]$. If the latter hold, than either
+the current pattern char matches the current char in the string that is $p[j] = [a-z] = s[i]$,
+or $p[j] = '.'$. If this is the case than the following hold:
+
+$dp[i][j] = d[i-1][j-1]$
+
+That is, we simply get the value of $dp$ ignoring the both the current pattern char
+$p[j]$ and the current char in the string $s[i]$.
+
+If, nevertheless, $p[j] == '*'$ than either the quantifier string $[a-z.]*$ matches nothing,
+that is $dp[i][j-2]$, or it matches $s[i]$ (be it because $p[j-1] = [a-z] = s[i]$ or
+because $p[j-1] = '.'$), in which case:
+
+$dp[i-1][j]$
+
+That is, ignoring the current char in the string, notice that the current value
+of the pattern stays the same, as the quantifier can still match previous characters
+in the string.
+
+This algorithm runs in $\Theta(sL.pL)$ regardless of the input, the space complexity
+is also $\Theta(sL.pL)$, which is the space necessary to build the $dp$ matrix.
 
 * LeetCode: [[https://leetcode.com/problems/can-i-win/][Can I Win - 464]]
    

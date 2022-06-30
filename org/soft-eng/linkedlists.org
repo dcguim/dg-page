@@ -6,6 +6,32 @@
 #+HEADER: :results output silent :headers '("\\usepackage{tikz}")
 #+HEADER: :results output silent :headers '("\\usepackage{pgfplots}")
 
+* LeetCode: [[https://leetcode.com/problems/copy-list-with-random-pointer/][Copy List with Random Pointer - 138]]
+#+begin_src java
+class Solution {
+    public Node copyRandomList(Node head) {
+        // create a hashmap that would track the pos of the node in the list
+        HashMap<Node, Node> orig2Copy = new HashMap<Node,Node>();
+        // create the return copy of the original list
+        Node curCopy, cur = head;
+        // loop through the original list and copy each next node to the map
+        while (cur != null){
+            orig2Copy.put(cur, new Node(cur.val));
+            cur = cur.next;
+        } 
+        // loop again through the original list and set next and random nodes
+        cur = head;
+        while(cur != null){
+            curCopy = orig2Copy.get(cur);
+            curCopy.next = orig2Copy.get(cur.next);
+            curCopy.random = orig2Copy.get(cur.random);
+            cur = cur.next;
+        }
+        return orig2Copy.get(head);
+    }
+}
+#+end_src
+
 * LeetCode: [[https://leetcode.com/problems/swapping-nodes-in-a-linked-list/][Swapping nodes in a Linked List - 1721]]
 
  #+begin_src java
@@ -162,3 +188,64 @@ to it has no bottom node. Next, $sub$ is inserted in the horizontal linked list.
 That's pretty much it! Assuming there are $N$ nodes in the horizontal list and
 $M$ nodes on the vertical lists, than for every $m$ node it will take at most $N$
 iterations to find it's appropriate position. Hence, it will take $O(M*N)$.
+
+* LeetCode: [[https://leetcode.com/problems/linked-list-in-binary-tree/][Linked List in Binary Tree - 367]]
+#+begin_src java
+class Solution {
+    class TreeNodeParent {
+        public TreeNode node;
+        public TreeNode par;
+        public TreeNodeParent(TreeNode node, TreeNode parent){
+            this.node = node;
+            this.par = parent;
+        }
+    }
+    public boolean isSubPath(ListNode head, TreeNode root) {
+        // bfs until the first node was found with the same value as the first listnode
+        // keep track of the current element in the linked list for each potential match
+        // if the next element does not match the tracked list, delete
+        TreeNodeParent cur;
+        List<ListNode> parListElems;
+        ArrayDeque<TreeNodeParent> unvisited = new ArrayDeque<TreeNodeParent>();
+        // notice an tree list can refer to multiple elements on the linked list
+        // for instance a tree node can refer to an element on the middle of the
+        // list as well as to the root, simultaneously 
+        HashMap<TreeNode, ArrayList<ListNode>> treeListMatch = 
+            new HashMap<TreeNode, ArrayList<ListNode>>();
+        unvisited.offer(new TreeNodeParent(root, null));
+        while (unvisited.size() > 0){
+            cur = unvisited.pollLast();
+            if (cur.node.val == head.val){
+                if (head.next == null) return true;
+                treeListMatch.put(cur.node, new ArrayList(){{
+                            add(head);
+                }});
+            }
+            // check if the parent of the current node refers to a 
+            // element in the linked list, and the current match 
+            // the next in the list.
+            parListElems = treeListMatch.getOrDefault(cur.par, new ArrayList<ListNode>(0));
+            for (ListNode listElem : parListElems){
+                if (listElem.next.val == cur.node.val) {
+                    // notice this ensures that listElem.next.val always exist.
+                    if (listElem.next.next == null) return true;
+                    if (treeListMatch.getOrDefault(cur.node, null) == null){
+                        treeListMatch.put(cur.node, new ArrayList(){{
+                            add(listElem.next);
+                        }});
+                    } else{
+                        treeListMatch.get(cur.node).add(listElem.next);
+                    }                        
+                }            
+            }
+            if (cur.node.left != null){ 
+                unvisited.offerFirst(new TreeNodeParent(cur.node.left, cur.node));
+            }
+            if (cur.node.right != null){
+                unvisited.offerFirst(new TreeNodeParent(cur.node.right, cur.node));
+            }
+        }
+        return false;
+    }
+}
+#+end_src
