@@ -7,7 +7,7 @@
 #+HEADER: :results output silent :headers '("\\usepackage{pgfplots}")
 
 * LeetCode: [[https://leetcode.com/problems/container-with-most-water/][Container With Most Water - 11]]
-#+begin_export java
+#+begin_src java
 class Solution {
     public int maxArea(int[] height) {
         int left = 0, right = height.length -1;
@@ -22,7 +22,7 @@ class Solution {
         return maxArea;
     }
 }
-#+end_export
+#+end_src
 One way to think about this problem is to think about reducing the left and right
 indexes without compromising the maximal area over the whole set. We can attempt
 to prove that this is the case for arbitrary left $l$ and right $r$ indexes. Assuming
@@ -41,23 +41,42 @@ are bars infinitely long this algorithm should inspect all of the vertical lines
 least once. The space complexity is constant as we don't need to make use of any
 data structures.
 * LeetCode: [[https://leetcode.com/problems/minimum-size-subarray-sum/][Minimum Size Subarray Sum - 209]]
-
+#+begin_src python
+  class Solution:
+    def minSubArrayLen(self, target: int, nums: List[int]) -> int:
+	if sum(nums) < target:
+	    return 0
+	subarr = [0,0]
+	running_sum = 0
+	minlen = len(nums)
+	# at each iteration consider the smallest subarr including num
+	for num in nums:
+	    running_sum += num
+	    # if I can reduce the length of my array by 
+	    # kicking elements on the beginning
+	    while running_sum >= target:
+		minlen = min(minlen, subarr[1] - subarr[0] + 1)
+		running_sum -= nums[subarr[0]]
+		subarr[0] += 1
+	    subarr[1] += 1
+	return minlen
+#+end_src
 #+begin_src java
-class Solution {
-    public int minSubArrayLen(int target, int[] nums) {
-        int i = 0, runningSum = 0, n = nums.length, m = nums.length;
-        if (Arrays.stream(nums).sum() < target) return 0;
-        for (int j=0; j < n; ++j){
-            runningSum += nums[j];
-            while (runningSum >= target){
-                m = Math.min(m, j-i+1);
-                runningSum -= nums[i];
-                i += 1;
-            }
-        }
-        return m;
-    }
-}
+  class Solution {
+      public int minSubArrayLen(int target, int[] nums) {
+	  int i = 0, runningSum = 0, n = nums.length, m = nums.length;
+	  if (Arrays.stream(nums).sum() < target) return 0;
+	  for (int j=0; j < n; ++j){
+	      runningSum += nums[j];
+	      while (runningSum >= target){
+		  m = Math.min(m, j-i+1);
+		  runningSum -= nums[i];
+		  i += 1;
+	      }
+	  }
+	  return m;
+      }
+  }
 #+end_src
 This algorithm keeps a window within $nums$ of size $m$ corresponding to the
 $runningSum$. The key aspect is to understand is how this window shifts over
