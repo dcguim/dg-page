@@ -7,7 +7,31 @@
 #+HEADER: :results output silent :headers '("\\usepackage{pgfplots}")
 
 * LeetCode: [[https://leetcode.com/problems/binary-search-tree-iterator/][Binary Search Tree Iterator - 173]]
+#+begin_src python
+from collections import deque
+class BSTIterator:
 
+    def IOenqueue(self, node):
+        while node.left != None:
+            node = node.left
+            self.q.appendleft(node)
+
+    def __init__(self, root: Optional[TreeNode]):
+        self.q = deque([root])
+        self.IOenqueue(root)
+
+    def next(self) -> int:
+        nextNode = self.q.popleft()
+        if nextNode.right != None:
+            self.q.appendleft(nextNode.right)
+            self.IOenqueue(nextNode.right)
+        return nextNode.val
+
+    def hasNext(self) -> bool:
+        if len(self.q) > 0:
+            return True
+        return False
+#+end_src
 #+begin_src java
 class BSTIterator {
     
@@ -41,9 +65,40 @@ class BSTIterator {
     }
 }
 #+end_src
+The trickiest part of this question is to realize it that queue is the right
+data structure, one can try to represent a tree by using a dictionary, but
+iterating in an in-order traversal fashion should be quite hard this way.
+One insight, that could hint using a queue, is that every node of the
+tree should be inspected only once, and so one can imagine that one node
+should be inserted once and popped once. Moreover, we would like to always
+know what is the next element, we could wishful think and that we have
+constructed our queue in such a way that the top element is always the
+next node in the traversal. This way, the $hasNext$ is trivial, it checks
+if the queue is non empty. We also know that the next node is just the
+top of the queue. But know we have to define the right order to insert into the
+queue. When building the class constructor, we know that if a next is called
+the left most node of the tree most be on top, so we would like to in-order
+enqueue all of the left child of the root recursively until we reach a
+node with no left child. Moreover, imagine a left most node had a right
+child, although the left most node would be returned, we would have to
+enqueue the right child and proceed as we did with the root.
+
+In terms of complexity the $IOenqueue$ function takes at most $O(log_2(n))$
+as this is the height of a binary tree. As inserting and popping from a
+deque should have $O(1)$ the complexity of the constructor and the function
+$next$ should be the logarithm complexity mentioned, where as the $hasNext$
+should run in $O(1)$ time.
 
 * LeetCode: [[https://leetcode.com/problems/queue-reconstruction-by-height][Queue Reconstruction by Height - 406]]
-   
+#+begin_src python
+class Solution:
+  def reconstructQueue(self, people: List[List[int]]) -> List[List[int]]:
+      people.sort(key = lambda k: (-k[0], k[1]))
+      queue = []
+      for person in people:
+          queue.insert(person[1], person)
+      return queue
+#+end_src
 #+begin_src java
   class Solution {
       public int queueSize = 0;
@@ -91,6 +146,14 @@ first obvious lowerbound. As we loop for all people, and for each person we have
 to push every people in front of him upwards, in the worst case cenario which
 everyone have the same height, we have to keep pushing the previously queued
 individuals up. Hence, the complexity is $O(n^2)$.
+
+Moreover, in the python solution, we use another piece of insight, to reduce the
+time complexity. Notice, that after we order list by the condition described
+above, that the $addToQueue$ function can be simplified, for example, when we are
+adding an element $p_i = [h_i, k_i]$ to the queue, we know that all of the people
+already added to the queue are taller than $h_i$, therefore the position of $p_i$
+in the queue must be exactly $k_i$, therefore one could just use python's $O(n)$
+insert function to add $p_i$ to position $k_i$ in the queue (list).
 
 * GeeksForGeeks: [[https://practice.geeksforgeeks.org/problems/lru-cache/1][LRU Cache]]
 #+begin_src java
