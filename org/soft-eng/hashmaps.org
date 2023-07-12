@@ -25,6 +25,22 @@ class Solution {
     }
 }
 #+end_src
+#+begin_src python
+class Solution:
+    def lengthOfLongestSubstring(self, s: str) -> int:
+        # maintain two indexes i,j, which will define the substring
+        # define a hashmap mapping a letter to the last seen position in the string
+        if s == "": return 0
+        lastChar = {l:-1 for l in s}        
+        i = 0
+        answer = -1
+        for j in range(len(s)):
+            if (ls := lastChar[s[j]]) > -1 and ls >= i:
+                i = ls + 1
+            answer = max(answer, j-i+1)
+            lastChar[s[j]] = j
+        return answer
+#+end_src
 This problem we have to find the longest substring which doesn't contain repeated
 characters. This can be done by defining a limit $j$ and iterating once through
 the characters $s[i]$ 's and looking back until $j$ to see if there is an $s[i]$
@@ -60,7 +76,22 @@ char will exist in the map, in the worst case, without duplicates.
       }
   }
 #+end_src
+#+begin_src python
+class MapSum:
 
+    def __init__(self):
+        self.d = {}
+
+    def insert(self, key: str, val: int) -> None:
+        self.d[key] = val
+
+    def sum(self, prefix: str) -> int:
+        s = 0
+        for k in self.d.keys():
+            if k.startswith(prefix):
+                s += self.d[k]
+        return s
+#+end_src
 Although classified as a medium difficulty problem, this is a fairly trivial.
 We have therefore a good excuse to talk about the complexity of $map.put$ and
 $map.get$ operations. HashMaps uses arrays and LinkedLists internally for

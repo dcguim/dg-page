@@ -7,6 +7,24 @@
 #+HEADER: :results output silent :headers '("\\usepackage{pgfplots}")
 
 * LeetCode: [[https://leetcode.com/problems/copy-list-with-random-pointer/][Copy List with Random Pointer - 138]]
+#+begin_src python
+class Solution:
+    def copyRandomList(self, head: 'Optional[Node]') -> 'Optional[Node]':
+        curr = head
+        orig2Copy = {}
+        orig2Copy[None] = None
+        while curr != None:
+            n = Node(x=curr.val)
+            orig2Copy[curr] = n 
+            orig2Copy[n] = curr
+            curr = curr.next
+        currCopy = orig2Copy[head]
+        while currCopy != None:
+            currCopy.next = orig2Copy[orig2Copy[currCopy].next]
+            currCopy.random = orig2Copy[orig2Copy[currCopy].random]
+            currCopy = currCopy.next
+        return orig2Copy[head]
+#+end_src
 #+begin_src java
 class Solution {
     public Node copyRandomList(Node head) {
@@ -31,7 +49,24 @@ class Solution {
     }
 }
 #+end_src
+The first issue perceived when creating a copy with random pointers while 
+iterating over the original list, is that they can point to unexisting list
+elements. Therefore, the first idea was to simply traverse the original list
+and create the deep copies of each element. Secondly, it is hard to be able to
+identify a random pointer from one element in the original list, one cannot use
+node values, as they might not be unique, using the distance between the current
+element and random element would be quite time consuming. If we simply draw two
+equal lists on top of each other, we might be tempted to express that we would
+like to map the a copied element's random pointer to the same copied element as
+in the original list. So if we could expresss, that an element in the original
+list points to the corresponding element in the copied list, we could say something
+like $curCopy.random = orig2Copy.get(cur.random)$ which means map the random pointer
+in the copied list to the corresponding copied element referring to the random
+pointer in the original list.
 
+The complexity in this problem is not two hard to analyse, the content of both
+while loops execute in $O(1)$, at each while loop we are checking every element
+on the list so $O(n)$ time.
 * LeetCode: [[https://leetcode.com/problems/swapping-nodes-in-a-linked-list/][Swapping nodes in a Linked List - 1721]]
 
  #+begin_src java
@@ -100,24 +135,45 @@ class Solution {
         return head;
     }
 }
- #+end_src
-  
+#+end_src
+#+begin_src python
+# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+class Solution:
+    def swapNodes(self, head: Optional[ListNode], k: int) -> Optional[ListNode]:
+	  curr = a = head
+	  for _ in range(k-1): curr = curr.next
+	  b = curr
+	  while curr.next != None:
+	      a = a.next
+	      curr = curr.next
+	  a.val, b.val = b.val, a.val
+	  return head
+#+end_src
 Firstly, although not obviously stated in the problem description, it was
 assumed that one must swap nodes not just values. Therefore it would be possible
 to write a more efficient algorithm, however, with similar upper bounds by
 preserving the original structure.
 
-The code comments are pretty self explanatory
-about the behaviour of the code, one must keep in mind edge cases when defining
-the nodes involved in the swap, for instance when the node previous to the
-end node is the beginning node then the ending node will point directly to the
-beginning node, as opposed to the node next to the beginning node. Additionally,
-when the head node is swapped, then the reference to the head must be the ending
-node.
+The code comments are pretty self explanatory about the behaviour of the code,
+one must keep in mind edge cases when defining the nodes involved in the swap,
+for instance when the node previous to the end node is the beginning node then
+the ending node will point directly to the beginning node, as opposed to the node
+next to the beginning node. Additionally, when the head node is swapped, then
+the reference to the head must be the ending node.
 
 The complexity of this code is $O(n)$. It is hard to imagine a solution with a
 tighter upper bound  as one must iterate throughout the linked list to define
 it's size and hence the position of the end node.
+
+Despite being hard to provide tighter upper bound we did attempt to provide a
+simpler solution in Python - avoiding complex if statements as above. If we try
+simply to swap values, we would liket o be in the position to do something like:
+$a.val, b.val = b.val, a.val$ in order to do this, we need to find the correct
+pointers the swapped nodes, $n_a$ and $n_b$.
 
 * GeeksForGeeks: [[https://practice.geeksforgeeks.org/problems/flattening-a-linked-list/1/][Flattening a linked list]]
 
