@@ -1,0 +1,124 @@
+#+TITLE: knowledge repo
+#+SUBTITLE: Statistics 110 - Lesson 1
+#+INCLUDE: "../navbar.html" export html
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+#+LaTeX_HEADER: \usetikzlibrary{pgfplots}
+
+#+begin_export html
+<!--
+### Exercises
+-->
+#+end_export
+* Matrices and Elimination
+** Meaning of Matrices
+The basic problem os linear algebra is to solve a system of linear equations,
+for example, terms without exponentials, or logarithms. The matrix-form is one
+way to represent a set of linear equations - a bunch of numbers organized in
+squared form: 
+
+\begin{equation}
+  \begin{array}{l}
+    1x - 2y = -3   \\
+    8x - 4y = 0
+  \end{array}
+\end{equation}
+
+
+#+RESULTS:
+#+begin_export latex
+\begin{equation}
+  \begin{array}{l}
+    1x - 2y = -3   \\
+    8x - 4y = 0
+  \end{array}
+\end{equation}
+#+end_export
+
+#+BEGIN_SRC latex :exports results
+     \begin{tikzpicture}
+	 \begin{axis}[domain=-2:4,legend pos=outer north east, height=5cm]
+	   \addplot[blue,mark=none] {e^(-((x-1)^2)/4)};
+	   \legend{$e^{-(x-1)^{2}/4}$}
+	 \end{axis}
+	   \draw (1.5,2.35) coordinate (a);
+	   \draw[dashed] (yaxis |- a) node[left] {$f(0)$}
+	   -| (xaxis -| a);
+	   \fill[red] (a) circle (2pt);
+     \end{tikzpicture}
+   #+END_SRC
+
+The system of linear equations above, could be also written in the matrix form
+$A\textbf{x} = b$. This form, \(A\textbf{x}=b\), where \(A\) is capitalized
+as it represents a $n x m$ matrix, and \(\textbf{x}\) and \(b\). The vector
+of unknown variables \(\textbf{x}\) is bold, if a solution for the system is
+found we could just write \(x\).
+
+\begin{align*}
+\begin{bmatrix}
+1 & -2 \\
+8 & -4
+\end{bmatrix}
+%
+\begin{bmatrix}
+x \\
+y
+\end{bmatrix}
+=
+\begin{bmatrix}
+-3 \\
+0
+\end{bmatrix}
+\end{align*}
+
+Simmilarly we could have expressed the same expression in the following
+matrix form:
+
+\begin{align*}
+\begin{bmatrix}
+1 \\
+8
+\end{bmatrix}
+x +
+\begin{bmatrix}
+-2 \\
+-4
+\end{bmatrix}
+y =
+\begin{bmatrix}
+-3 \\
+0
+\end{bmatrix}
+\end{align*}
+
+This can be also seen as the linear combination of the columns in the sense
+of which two number $x$ and $y$ solve the system of equations so that the
+the first row and the second row satisfy the equation, we can see for
+instance that $x=1, y=2$ is a solution for this $\textbf{A} x = b$
+matrix equation at some point \(x = \{1, 2\}\):
+[[file:../img/la1-1.png]]
+
+
+Notice that these system of equations are two lines in the 2 dimensional
+space. There is a solution if the two lines meet, otherwise, if the
+lines are parallel to each other, there will be no solution. It could
+also be the case that these lines won't ever cross, if they are
+parallel to each other, in this case, there would be no solution
+for \(\textbf{x}\). Moreover, these could also be on top of each
+other, meaning there would be infinite solutions \(x\)
+for \(\textbf{x}\), or points along the line. 
+
+Now, it's pretty clear, by eyeballing the rows that the point \((1,2)\)
+solves the equation. We can also see this relationship in the plot
+bellow:
+file:../img/la1-2.png
+
+We can notice that by adding one of column 1 with two of column 2 we get to
+the vector. We can say that there is a linear combination of columns 1 and 2
+that satisfies the equation, and by linear combination we mean that there are values
+for \(x\)  and \(y\)  that satisfy the equation, moreover, we mean that we can
+combine column 1 and column 2 in such a way to reach the vector as in the picture
+above.
+
+
+** Elimination

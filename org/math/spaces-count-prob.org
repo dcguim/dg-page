@@ -1,0 +1,212 @@
+#+TITLE: knowledge repo
+#+SUBTITLE: Statistics 110 - Lesson 1
+#+INCLUDE: "../navbar.html" export html
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+#+HEADER: :results output silent :headers '("\\usepackage{tikz}")
+
+#+begin_export html
+<!--
+### Simple probability concepts, such as the naive definition, and the :ignore:
+### multiplication rule. Constructions of stories to start thinking about equivalent probabilities.
+### First and second axioms of probability and the non-naive definition.
+-->
+#+end_export
+* Sample Spaces, Counting, and Probability
+** Simple definitions and notation
+A /sample space/ (*S*) is the set of all possible outcomes of an event, for instance,
+flipping a coin twice, has a sample space of four possible /outcomes(s)/ or
+/realizations/, namely, $S = \{HH, HT, TH, TT\}$ is a subset of a sample space,
+so the event *A* of the first coin being heads, is the subset $\{HT, HH\}$.
+
+The sample space *S* can also be infinite, we could define *S* to be defined by
+infinitely tossing a coin:
+    $S = \{s = (s_1, s_2, s_3, ..) : s_i \in \{H, T\}\}$
+
+Notice that the sample space can also be seen as an event, if *A = S* we have
+that *A* is the true event, which is always true. Oppositely, $\emptyset$
+corresponds to the null event which is always false.
+    
+*** Naive definition of probability
+The probability of an event happening means to assign a real number *P(A)*
+to an event *A*, the naive defition of probability is simply:
+
+$P(A) = \dfrac{\# favorable\ outcomes}{\# possible\ outcomes} = \dfrac{|A|}{|S|}$
+
+For example, if we are talking about the event of flipping two heads, in a two coin flip:
+
+$P(A) = \dfrac{|\{HH\}|}{|\{HH, HT, TH, TT\}|} = \dfrac{1}{4}$
+
+*** Binomial coefficient and sampling
+In probablity, counting how many times a particular outcome *s* happened or can
+potentially happen is key determine the size of the sample space *S* and of the
+event *A*. The binomial coefficient can be very useful to count such things,
+for example if we would like to choose a group of 3 students representative out of
+a class of 20, we could think of:
+
+$\{\# picking\ any\ of\ the\ 20\} \times  \{\# picking\ any\ of\ the\ 19\ left\} \times \{\# picking\ any\ of\ the\ 18\ left\} \Rightarrow 20 \times 19 \times 18$
+
+However, notice that within a group of three students, we are couting groups such as
+
+$\{s_1,s_2,s_3\}, \{s_1,s_3,s_2\}, \{s_2,s_1,s_3\}, \{s_2,s_3,s_1\},  \{s_3,s_2,s_1\}, \{s_3,s_1,s_2\}$, 
+
+So what we have actually computed above was the amount of groups of 3 students where the
+order matters and the students are not replaced (I can only pick one student once):
+
+Generally: $n(n-1)..(n-k+1) = \dfrac{n!}{(n-k)!}$
+
+Because we are picking any of the 20 students, then any of the 19 students and so forth.
+Although we would like to pick 3 students regardless of the order they appear in the group,
+one should discount the amount of times we are overcounting groups of three. This overcounting
+is, in this case, exactly 6 or 3!.
+
+So we say that, the binomial coefficient of picking 3 out of 20 where the order does not matter is $C_3^{20} = \dfrac{20!}{17!3!}$
+
+Or generally: $C_k^n = \dfrac{n!}{(n-k)!k!}$
+
+Imagine we are talking about picking cards instead, from a deck, where every time we pick a card
+we can also shuffle it back on the deck, in this case, if the order we pick also matters we
+would compute with $n^{k}$.
+
+**** Unintuitive sampling
+The first methods of sampling shown above, where order matters, or in the case from the
+binomial coefficient where it does not matter and there is no replacement are relatively
+straight forward to understand. However, the order still doesn't matter and the there is
+replacement the problem becomes a bit harder to crack.
+
+The common line of thought it would be to say - if there is replacement then we can use $n^{k}$
+to get *k* permutations of the *n* objects, and then discount what was overcounted as the order
+doesn't matter. So for a simple case of *n = 4* and $k = 3$ where we have a realization like
+$\{o_1, o_2, o_3\}$ we would have to dicount overcounting
+$\{o_1, o_2, o_3\}, \{o_2, o_1, o_3\}, \{o_1, o_3, o_2\}$ ..., a simple $k!$ factorial should do it, right?
+
+Wrong! In this case because we have with replacement we would also have to discount the case where
+we have two repeated objects so: $\{o_1, o_1, o_3\}, \{o_1, o_3, o_1\}, \{o_3, o_1, o_1\}$ ...
+
+By the way, we would have to ensure we are discounting not only pairs of identical elements but
+also triples in the case where *k=4*, and so forth for arbitrary values of *k*. By discounting
+$k!$ we would only be dicounting the overcounted elements when they are different among themselves.
+
+An easier way to think about this is to try to get some insight on what does it mean to
+have pick *k* out of *n* objects where the order doesn't matter, with replacement. If we are picking
+something with replacement, that means we could pick the same thing multiple times, so we would need
+to count how many times we picked a particular object $o_i$, notice we could also have a an outcome
+where the object is not picked at all. We could think of counting how many times we picked a particular
+object in the following form: $oo||o$  this translates picking *o_1* two times and *o_3* once. The
+fact that these dots are indistinguishable support us with the /"order doesn't matter"/ part.
+
+Therefore there are *n+k-1* positions and choose the position for the dots and separators, and so
+in a particular outcome, if we pick the *k-1* positions for the separators we will automatically have
+the positions for the dots:
+   $$C^{n+k-1}_{k}$$ \\
+** COMMENT Story Proofs
+
+*** Examples of Story Proof (Proof by interpretation)
+**** Group with one leader
+    $$n.C^{n-1}_{k-1} =k.C^{n}_{k}$$
+
+    Proof:\\
+    Form a group of k people out of n, with one being the 'leader'; \\    
+    LHS) pick from n people the 'leader' (n); then from the rest form the 
+    group $C^{n-1}_{k-1}$ \\
+    RHS) pick k people from n ($C^{n}_{k}$); then pick one from k to be the 
+    'leader' \\
+**** Vandermonde
+    $$C^{m+n}_{k} = \sum^{k}_{j=0}C^{m}_{j}C^{n}_{k-j}$$ 
+    Proof:\\
+    LHS) we have two groups m and n and we want to pick k people from m+n \\
+    RHS) If we pick j from group m we would have to pick k-j from group n;
+    additionally j can range from 0 to k, which are all disjoint cases that
+    fix the value of j. \\
+**** Subgroups  
+    $$\sum^{n}_{k=0} C^{n}_{k}= 2^{n}$$
+    Proof:\\
+    Select a subgroup from n people. \\
+    LHS) The subgroup can have 1,2,.. n people, therefore to calculate the combinations
+    of forming subgroups of 1 or of 2 or of 3 it is necessary to add the combinations. \\
+    RHS) Each people can either be or not in the group, so there is two states,
+    so blpy simply calculating 2 to the n, we are also counting the all the subgroups. \\
+**** Couples
+    $$\dfrac{(2n)!}{2^{n}.n!} =(2n-1).(2n-3)···3.1$$
+    Proof:\\
+    Different ways of forming n couples of people. \\
+    LHS) We can simply think of all possible 2n! sequences of people, and for each of those
+    sequences we form couples by just taking the first two neighbors, then the second two, ...
+    pairwise until all n couples are formed. But, by doing this way we would count the same
+    couple twice in two ways. 1) Because the order of the couples within the sequence don`t matter,
+    we would be counting couple say (1,2) when it appears as the in the first two positions,
+    as well as in the second and third position and so forth, therefore there are n! ways the couples
+    are overcouting. 2) we would also count (2,1) by just calculating all the sequences, therefore
+    the order within the couples should be desconsidered, so we should divide by 2 for every couple
+    hence 2^{n}. \\
+    RHS) Similarly, we could randomly take one person from the 2n swarm of people and form 2n-1 couples
+    with this selected individual, then we can take another one and form (2n-3) couples, and so on.  \\
+** Non-naive definition of probability 
+   The non-naive definition simply states that *P(A)*, the probability of an event *A* happening,
+   must be between the *[0,1]* domain. A function that assign a real number, in this domain, to *every*
+   event *A* is called a /probability distribution/ or a /probability measure/.
+
+*** Two axioms of probabilty
+    1. $P(0)=0$ and $P(S)=1$ \\
+    2. $P\left(\bigcup^{\infty}_{n=1}A_n \right) = \sum^{\infty}_{n=1} P(A_{n})$ iff A_{1}, A_{2} ... are disjoint \\
+
+** COMMENT Birthday Problem:
+   k people find prob. that 2 have same birthday; assume
+   365 days equally likely, assume indep. of birthday from
+   seasonal events. We can draw 365 boxes to represent the
+   birth dates:
+   [..][...] ... [..]
+   1. If $k > 365$, prob. is 1 (pigeon hole principle) \\
+   2. P(no match) = $\frac{365.364...(365-k+1)}{365^{k}}$ \\
+      Beware with the +1, the number of terms on the numerator
+      is k, and because the first term is n, second n-1, and so
+      on, the 365th term should be n-(k-1)
+   3. $P(match)$:\\
+      + 50.7%, if k = 23;
+      + 97%, if k = 50;
+      + 99.999, if k = 100 \\
+      Intuition, there are k people but there are $C^{k}_{2}$
+      pairs of people, so for $C^{23}_{2}$ = 253 pairs of people.
+** Properties of Probability
+*** Complement 
+    $$P(A^{c}) = 1 - P(A)$$ \\
+    Proof: $$P(S) = 1 \Leftrightarrow_{ax1} P(A\cup A^{c}) = P(S) \Leftrightarrow_{ax2} P(A\cup A^{c}) =_* P(A) + P(A^{c})$$ * /(since A \cap A^{c} = 0)/
+*** Subset    
+    $$A \subseteq B \to P(A) \le P(B)$$ \\
+    From the venn diagram of $A \subseteq B$:
+    Proof: $$B = A \cup (B \cap A^{c}) \Leftrightarrow_{ax2} P(B) =_* P(A)+P(B\cap A^{c}) \ge P(A)$$ * /(because P(B\cap A^{c} is \ge 0)/
+*** Probability of the conjunction of two events
+    $$P(A\cup B)=P(A)+P(B)-P(A\cap B)$$ \\ 
+    Proof: $$P(A\cup B) = P(A\cap B^{c})+P(B\cap A^{c})+P(A\cap B) = P(A\cap B^{c})+P(B) =_* P(A)+P(B)-P(A\cap B)$$  * /(since $P(A) = P(A\cap B^{c}) + P(A\cap B)$ by the venn diagram)/
+*** Inclusion-Exclusion General Property
+    $$P(A \cup B \cup C) = P(A)+P(B)+P(C)-P(A\cap B) - P(A\cap C) - P(B\cap C) + P(A \cap B \cap C)$$
+    $$P(A_{1} \cup A_{2} ... \cup A_{n}) = \sum^{n}_{i=1} P(A_{i}) - \sum^{n}_{j< i} P(A_{i}\cap A_{j}) + \sum^{n}_{k< j< i} P(A_k\cap A_j\cap A_i) -  ... P(A_{1} \cap ... A_{n})$$
+    Or more compactly:  $$\bigcup^{n}_{i=1}A_{i} = \sum_{0\ne K\subseteq\{1,2..n\}} (-1)^{|J|-1} P\left(\bigcap_{i\in K} A_{i}\right)$$ \\
+
+    The nice thing about this property is that we transform something we don't know how to compute, disjunction
+    of several events which are not disjoint into something we do know how to compute - a conjunction of events.
+** de Montmort`s Problem
+   Consider a deck of cards where every card just have a number 1 to *n*, it has no types and no suits.
+   The cards are first shuffled then flipped one by one, we are counting out loud from 1 to *n* before
+   flipping each card. A match happens if the position we just called is equals the value of the flipped card.
+   If a match happens, the game stops, although it is possible that a match will not happen. The problem is
+   to calculate the probability of the game stopping.
+
+   *A_{i}* is the event where the *i*-th flipped card there is a match. So we would like to calculate the
+   probabilty of at least one card matching:
+   $$P\left(\bigcup A_i\right) = P(A_{1} \cup A_{2} \cup ... A_{n})$$ \\
+
+   By the naive definition of prbability, if we set the position from the *i*-th card to have value *i*, and
+   permute everything else, we have:
+   $$P(A_i) = \dfrac{(n-1)!}{n!} = \dfrac{1}{n}$$
+
+   In order to use the inclusion-exclusion rule we need to be able to calculate the conjunction of
+   different combinations of the event *A*. For example, we need to be able to calculate:
+   $$P(A_i\cap A_j) = \dfrac{(n-2)!}{n!}$$
+   as well as:
+   $$P(A_i\cap A_j\cap A_k) = \dfrac{(n-3)!}{n!}$$
+
+   and so forth, I think the pattern should be clear. So we could express the inclusion-exclusion expression as:
+   $$P\left(\bigcup A_i\right) = n.\dfrac{1}{n} - C_2^n\dfrac{(n-2)!}{n!} + C_3^n\dfrac{(n-3)!}{n!} - ...$$
+   $$P\left(\bigcup A_i\right) = n.\dfrac{1}{n} - \dfrac{n!}{2!(n-2)!}.\dfrac{(n-2)!}{n!} + \dfrac{n!}{3!(n-3)!}.\dfrac{(n-3)!}{n!} - ...$$
+   $$P\left(\bigcup A_i\right) = 1 - \dfrac{1}{2!} + \dfrac{1}{3!} - ... \dfrac{1}{n!}$$

@@ -1,0 +1,73 @@
+#+TITLE: knowledge repo
+#+SUBTITLE: Statistics 110 - Lesson 1
+#+INCLUDE: "../navbar.html" export html
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+#+HEADER: :results output silent :headers '("\\usepackage{tikz}")
+
+#+begin_export html
+<!--
+### Exercises
+-->
+#+end_export
+* Exercises: Sample Spaces, Counting, and Probability
+** Continuity of Probability
+*** Prove the following theorem:  If *A_n* $\rightarrow$ *A* $\implies$ *P(A_n)* $\rightarrow$ *P(A)*
+We would like to show that $lim_{i\rightarrow \infty} P(A_i) = P(A)$.
+
+Let's start by expanding our definition of *A_n* $\rightarrow$ *A*, by this we mean that *A_n* tends
+to *A* while *n* tends to $\infty$, in order to prove the logical implication the left side must be
+true, and therefore, this would only happen if we broken down *A* into several parts *A_i* which
+when there are infinitely many such parts, it adds up to *A*.
+$$A = A_1 \subseteq A_2 \subseteq A_3 ... = \bigcup_{i = 1}^\infty A_i$$
+
+The problem is that if we take the probability of the disjuntion we would not end up with something
+we can't compute, as *A_i* events are not disjoint between each other. Therefore we need to convert a
+particular event *A_i* into something easier to work with.
+
+Let break down *A_i* in concentric rings, such as: \\
+$B_1 = A_1$, \\
+$B_2 = \{s \in  S | s \in A_2; s \notin A_1\}$, \\
+$B_3 = \{s \in S | s \in A_3; s \notin A_2; s \notin A_1\}$, \\
+$B_j = \{s \in S | s \in A_j; s \notin A_{j-1}; s \notin A_{j-2}; ...; s \notin A_1\}$ \\
+
+It is not too hard to see that the terms $B_i$ are disjoint among each other, if there is any
+set $B_{\mathcal{S}}$ of terms, say a set of three elements $k\gt j\gt i$ then one can show that by the
+definition of $B_j$ it will not include any outcome of the sample space that exist in any $B$ -term
+with a smaller index then itself, and likewise for $B_j$, and so forth.
+
+Therefore we are now in the position to write the following:
+
+$A_i = B_1 + B_2 + ... + B_i$
+
+Or more generally, using the second axiom of probability:
+
+$A_i = \bigcup_{i=1}^\infty B_i$
+
+Because these events represents the same set of outcomes, then their probability shouls also be the
+same:
+$P(A_n) = P(\bigcup_{i=1}^n B_i) = \sum_{i=1}^n B_i$
+
+Going back to what we actually want to prove:
+$lim_{i\rightarrow\infty} P(A_i) = P(\bigcup_{i=1}^\infty B_i) = P(A)$
+
+***  Suppose that A and B are independent events. Show that A^c and B^c are also independent events.
+Independency means $P(A\cap B) = P(A)P(B)$ so we want to prove that $P(A^c\cap B_c) = P(A^c)P(B^c)$
+
+It seems that the easier way to prove this would be to go backwards, i.e. to prove $P(A^c)P(B^c)$
+leads into $P(A^c\cap B^c)$ using the information that *A* and *B* are independent.
+
+$P(A^c)P(B^c) = (1 - P(A))(1 - P(B))$
+$P(A^c)P(B^c) = 1 - P(B) - P(A) + P(B)P(A)$
+
+Notice at this point that we need to make use that *A* and *B* are independent:
+$P(A^c)P(B^c) = 1 - P(B) - P(A) + P(A\cap B)$
+$P(A^c)P(B^c) = P(A^c\cap B^c)$
+
+The last equality derives from the Venn diagram. So the sample space minus the area of *A*
+minus the area from *B* and adding back the discounted $A\cap B$ is the area which are nor
+in A nor in B. Moreover, P(A^c\cap B^c)$$ is the intersection of everyting that is not in *A*
+with the the things which are not in *B*, which is the same as the area which are in neither
+of them. On another note, this is also an argument for the following equality:
+
+$P(A^c \cap B^c) = P((A \cup B)^c)$
