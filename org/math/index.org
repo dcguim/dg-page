@@ -5,6 +5,13 @@
 #+OPTIONS: num:nil
 #+HEADER: :results output silent :headers '("\\usepackage{tikz}")
 
-* Topics 
+* Introduction to Statistics
+- [[file:spaces-count-prob.html][Sample Spaces, Counting, and Probability]]
+- [[file:ex-spaces-count-prob.html][Exercise: Sample Spaces, Counting, and Probability]]
+  
+* Introduction to Linear Algebra
+- [[file:elimination.html][Meaning or matrices and Elimination]]
+
+* Series
 - [[file:faulhaberseries.html][Faulhaber's series]]
 
