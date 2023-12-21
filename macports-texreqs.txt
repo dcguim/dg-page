@@ -1,0 +1,12 @@
+tex-common
+tex-gyre
+texlive-base
+texlive-binaries
+texlive-fonts-recommended
+texlive-generic-recommended
+texlive-latex-base
+texlive-latex-extra
+texlive-latex-recommended
+texlive-pictures
+texlive-plain-generic
+texlive-xetex
