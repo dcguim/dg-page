@@ -8,10 +8,13 @@
 * Introduction to Statistics
 - [[file:spaces-count-prob.html][Sample Spaces, Counting, and Probability]]
 - [[file:ex-spaces-count-prob.html][Exercise: Sample Spaces, Counting, and Probability]]
-  
+
 * Introduction to Linear Algebra
-- [[file:elimination.html][Meaning or matrices and Elimination]]
+- [[file:la1-elimination.html][Meaning or matrices and Elimination]]
+- [[file:la2-spaces.html][Vector spaces, column spaces, and null spaces]]
 
 * Series
 - [[file:faulhaberseries.html][Faulhaber's series]]
 
+* Mathematical Finance
+- [[file:value-at-risk.html][Value at Risk]]

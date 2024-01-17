@@ -1,0 +1,454 @@
+#+TITLE: knowledge repo
+#+SUBTITLE: Linear Algebra 110 - Lesson 2
+#+INCLUDE: "../navbar.html" export html
+#+SETUPFILE: ../latexheaders.org
+
+* Spaces created by vectors
+** Vector spaces
+A vector space of a given set of vectors $V$ can be understood as all the linear
+combinations between vectors in $V$. Let's say $V$ consist of vectors $w$ and $v$,
+with the following form:
+#+begin_src latex :file ../img/vector-space1.png :results file graphics
+  \begin{tikzpicture}[scale=0.7]
+    \draw[help lines, color=gray!50] (-5,-5) grid (5,5);
+    \draw[->,thick] (-5,0)--(5,0) node[right]{$x$};
+    \draw[->,thick] (0,-5)--(0,5) node[above]{$y$};
+    \draw[->,thick, blue] (0,0)--(1,2) node[right]{$w$}
+    \draw[->,thick, red] (0,0)--(-2,1) node[left]{$v$}
+  \end{tikzpicture}
+#+end_src
+
+We could say that the space of vectors formed by these two vectors contains
+every vector such as /k/.$w$ and /c/.$v$, for /k/ and /c/ being constants. That
+means we could scale each vector in their direction, by multiplying an integer
+/scaler/ to their dimensions. Let's for example multiply different constants
+to $w$, and generate other vectors, in light blue, belonging to the vector space
+of $V$.
+#+begin_src latex :file ../img/vector-space2.png :results file graphics
+  \begin{tikzpicture}[scale=0.7]
+    \draw[help lines, color=gray!50] (-5,-5) grid (5,5);
+    \draw[->,thick] (-5,0)--(5,0) node[right]{$x$};
+    \draw[->,thick] (0,-5)--(0,5) node[above]{$y$};
+    \draw[->,thick, red] (0,0)--(-2,1) node[left]{$v$}
+    \draw[->,thick, cyan] (0,0)--(0.5,1) node[right]{$0.5w$}
+    \draw[->,thick, cyan] (0,0)--(2,4) node[left]{$2w$}
+    \draw[->,thick, cyan] (0,0)--(-1,-2) node[left]{$-1w$}
+    \draw[->,thick, cyan] (0,0)--(-2,-4) node[left]{$-2w$}
+    \draw[->,thick, blue] (0,0)--(1,2) node[right]{$w$}
+  \end{tikzpicture}
+#+end_src
+
+Similarly, the vectors formed by additions of vectors within the vector space
+are also part of the vector space. For example, $w+v$, or $2w+v$. Of course,
+there uncoutable vectors belonging to this continuous vector space, in fact,
+this vector space /"spans"/ to the whole $\mathbb{R}^2$ space. 
+#+begin_src latex :file ../img/vector-space3.png :results file graphics
+  \begin{tikzpicture}[scale=0.7]
+    \draw[help lines, color=gray!50] (-5,-5) grid (5,5);
+    \draw[->,thick] (-5,0)--(5,0) node[right]{$x$};
+    \draw[->,thick] (0,-5)--(0,5) node[above]{$y$};
+    \draw[->,thick, blue] (0,0)--(1,2)  node[right]{$w$};
+    \draw[->,thick, red] (1,2)--(-1,3)  node[right]{$v$};
+    \draw[->,thick, violet] (0,0)--(-1,3)  node[left]{$w + v$};
+    \draw[->,thick, cyan] (0,0)--(2,4)  node[right]{$2w$};
+    \draw[->,thick, pink] (2,4)--(0,5)  node[right]{$v$};
+    \draw[->,thick, violet] (0,0)--(0,5)  node[left]{$2w + v$};
+  \end{tikzpicture}
+#+end_src
+The concept of /"span"/ of a vector space is more of an imaginary or visual exercise.
+It is beyond the purpose of this post, nevertheless, there are great explanations
+on the internet about this topic, for example, the video lectures of
+[[https://www.3blue1brown.com/lessons/span][3blue1brown on span]].
+
+** Subspaces
+As in the example above, if we have two arbitrary 2d-vectors which are not in the
+same direction those two vectors will span to the whole $\mathbb{R}^2$. Simmilarly,
+we could think of three 3d-vectors in different directions would be enough for us
+to generate all the 3d-vectors in $\mathbb{R}^3$, and so on. That means that if
+we have /n/ /n/d-vectors, and they have a relationship amongst themselves, they
+are able to span the $\mathbb{R}^n$.
+
+So what if we have less vectors than the dimension we are at, for instance,
+two vectors in $\mathbb{R}^3$, and consider all of the linear combination of
+those two vectors, then we end up on the realm of /subspaces/.
+
+Let's take a few lines representing vectors in $\mathbb{R}^2$ and try to reason
+which would be good candidates for subspaces. Notice that I took lines because
+a subspace is a vectorspace so if we have a subspace of a single vector we must
+also consider all of the multiples of these vectors.
+
+#+begin_src latex :file ../img/vector-space4.png :results file graphics
+  \begin{tikzpicture}[scale=0.7]
+    \draw[help lines, color=gray!50] (-5,-5) grid (5,5);
+    \draw[->,thick] (-5,0)--(5,0) node[right]{$x$};
+    \draw[->,thick] (0,-5)--(0,5) node[above]{$y$};
+    \draw[brown] (-5,-4)--(5,4);
+    \draw[->,ultra thick, brown] (0,0)--(1,4/5) 
+    \draw[red] (-5,-3)--(2,5);
+    \draw[->,ultra thick, red] (-1,11/7)--(-0.5,15/7) 
+    \draw[blue] (-3,-5)--(5,1);
+    \draw[->,ultra thick, blue] (0,-11/4)--(1,-2) 
+  \end{tikzpicture}
+#+end_src
+
+By the definition of subspaces we should be able to add any vector in the like and
+multiply any vector in the line by a constant and we should produce a vector in
+the line, or in the subspace. Let's start with multiplication, if we multiply
+any of the vectors above by a constant $k > 0$ or $k < 0$ we get vectors on the
+direction of the line, but if we multiply by $k=0$ we get $/{0,0/}$, the origin,
+which is not present on the red and blue line. That means, only the brown line
+is a subspace. We can also say that only vectors going through the origin are
+good candidates for subspaces. In fact, the origin alone, could be considered
+a subspace present in every dimension $\mathbb{R}^n$.
+
+This condition also applies for subspaces in higher dimensions, if we have a
+subspaces in $\mathbb{R}^3$, which could be:
+ * the origin, built out of the origin vector
+ * a line, built out of a vector going through the origin
+ * a plane built out of two vectors
+ * the whole $\mathbb{R}^3$
+
+for all these fours subspaces we should be able to multiply any vector by the
+origin, that means the line, and the plane must go through the origin. So we
+could define subspaces for a dimension $\mathbb{R}^i$ in the following way:
+ * it must contain the origin
+ * linear combinations $c.v+k.w$ must also be in the subspace
+
+** Column space
+
+Up until now, we haven't talked about matrices or linear equations but simply
+vectors, however, we can also use these concepts of vector spaces and
+subspaces to better understand matrix equations.
+
+\begin{align*} 
+\begin{bmatrix}
+3 & 2 & 5 \\
+7 & 1 & 8 \\
+8 & 2 & 10 \\
+3 & -1 & 2
+\end{bmatrix}
+\begin{bmatrix}
+x_1 \\
+x_2 \\
+x_3 
+\end{bmatrix}
+=
+\begin{bmatrix}
+b_1 \\
+b_2 \\
+b_3 
+\end{bmatrix}
+\end{align*} 
+
+When looking at the columns of the matrix $A$ above, we have three vectors in
+$\mathbb{R}^4$, and we would like to know when are we able to solve the equation?
+Can $b$ be any vector, or must $b$ be somehow constrained? Notice, that we
+could have also expressed the equation above as $c_1.x_1 + c_2.x_2 + c_3.x_3$ as
+we talked before, the solutions $b$ will have to be a vector in $\mathbb{R}^{4}$
+in the space formed by spanning the vectors in the columns of $A$, $c_1$, $c_2$, $c_3$,
+or the /column space/ of $A$, $C(A)$. This is exactly the definition of subspace
+we used above, we just susbstituted the constants by the variables $x_1, x_2$ and
+$x_3$.
+
+The next question we can ask, is how does this subspace looks like, is it a line,
+a plane, a 3d volume? This question depends on the relationship between, the vectors
+if we have three vectors sitting in the same direction, then we have simply a line.
+If we look above, can we generate a column of $A$ by linear combinations of other
+columns? If we think algorithmically could take the first, column and add to a
+set of good column, then take the second column and verify if the following holds.
+\begin{align*}
+\begin{bmatrix}
+3 \\
+7 \\
+8 \\
+3
+\end{bmatrix}
+\begin{bmatrix}
+y_1 \\
+\end{bmatrix}
+=
+\begin{bmatrix}
+2  \\
+1  \\
+2  \\
+-1
+\end{bmatrix}
+\end{align*}
+Can we find an $y_1$ such that this equation holds? If we do, that means that
+these two vectors, $c_1$ and $c_2$ are siting in the same line. We can see
+there is no $y_1$ that satisfy this equation. Moreover, we could check for the
+independence of $c_3$ from $c_1$ and $c_2$.
+
+\begin{align*} 
+\begin{bmatrix}
+3 & 2 \\
+7 & 1 \\
+8 & 2 \\
+3 & -1
+\end{bmatrix}
+\begin{bmatrix}
+y_1 \\
+y_2 \\
+\end{bmatrix}
+=
+\begin{bmatrix}
+5 \\
+8 \\
+10 \\
+2 
+\end{bmatrix}
+\end{align*} 
+
+Now, we are able to satisfy the equation with the vector $y = \{1,1\}$. That
+means that column three is sitting on the plane formed by columns one and two.
+Therefore, we could also conclude that $b$ must also be a vector in the plane
+formed by $c_1$ and $c_2$ - a linear combination of these columns; or in the $C(A)$.
+We cannot say the same thing about the $x$ vector, if we do fix  $b$ as a non-zero
+vector, we cannot say $x$ forms a subspace, as $x$ will not contain the origin.
+
+** Null space
+
+Nevertheless, if we do say $b$ is the zero vector, and look for all solutions of
+$\mathbf{x}$ that satisfy $A\mathbf{x} = 0$, then we are talking about the nullspace of $A$, or
+$N(A)$. Let's take the same example, as above:
+
+\begin{align*} 
+\begin{bmatrix}
+3 & 2 & 5 \\
+7 & 1 & 8 \\
+8 & 2 & 10 \\
+3 & -1 & 2
+\end{bmatrix}
+\begin{bmatrix}
+x_1 \\
+x_2 \\
+x_3 
+\end{bmatrix}
+=
+\begin{bmatrix}
+0 \\
+0 \\
+0 
+\end{bmatrix}
+\end{align*} 
+
+For this example we are looking at 4 equations with 3 unknowns, so the solutions
+for $\mathbf{x}$ are in $\mathbb{R}^3$. If we take a closer look in the matrix $A$,
+we can notice that $c_3$ is $c_1+c_2$, therefore, $k$ being any constant, we have:
+
+\begin{align*} 
+x = k
+\begin{bmatrix}
+1 \\
+1 \\
+-1
+\end{bmatrix}
+\end{align*} 
+
+** Solving $A\textbf{x} = 0$
+
+The matrix selected above was particularly simple to solve but this might not
+always be the case. Let's take a slightly more complicated matrix, for instance,
+the one ine the following matrix equation:
+
+\begin{align*} 
+\begin{bmatrix}
+3 & 6 & 1 & 5  \\
+6 & 6 & 1 & 11   \\
+3 & 9 & 2 & 4 
+\end{bmatrix}
+\begin{bmatrix}
+x_1 \\
+x_2 \\
+x_3 \\
+x_4
+\end{bmatrix}
+=
+\begin{bmatrix}
+0 \\
+0 \\
+0 
+\end{bmatrix}
+\end{align*}
+
+By elimination we can solve this equation, and find the correspondent vector
+space of $\mathbf{x}$. Let's first get to the $U$ shape by performing the
+following row transformations:
+ * /(r_3' \leftarrow -r_1 + r_3/)
+ * /(r_2' \leftarrow 2r_1 - r_2/)
+ * /(r_3' \leftarrow 1/2r_2 - r_3/)    
+
+\begin{bmatrix}
+3 & 6 & 1 & 5  \\
+0 & 6 & 1 & -1   \\ 
+0 & 0 & -1/2 & 1/2
+\end{bmatrix}
+
+Now let's continue elimination by turning the upper triangular part of the matrix
+also to zeros, by performing the transformations:
+ * /(r_2' \leftarrow 2r_3 + r_2/)
+ * /(r_1' \leftarrow 2r_3 + r_1/)
+ * /(r_1' \leftarrow -r_2 - r_1/)    
+
+This produces the following matrix:
+
+\begin{bmatrix}
+3 & 0 & 0 & 6  \\
+0 & 6 & 0 & 0   \\ 
+0 & 0 & -1/2 & 1/2
+\end{bmatrix}
+
+Finally we can divide each row in the matrix by 3, 6 and -2 to reach the following
+matrix:
+
+\begin{bmatrix}
+1 & 0 & 0 & 2  \\
+0 & 1 & 0 & 0   \\ 
+0 & 0 & 1 & -1
+\end{bmatrix}
+
+Notice that all these operations are not changing the solutions, or the vector
+space of $\mathbf{x}$, i.e. adding multiple of rows is not changing the values of
+$\mathbf{x}$ nor is multiplying a whole equation by a scalar, notice the
+right-side is zero. It would nevertheless change if we were trying to solve
+$A\mathbf{x} = b$.
+
+So why have we taken these arbitrary steps to achieve this particular form,
+clearly we have reached a form [$IF$] - the identity multiplied by another
+matrix, or vector in this case, $F$. If we think back in terms of system of
+equations, we have a very practical system of equations:
+
+\begin{equation}
+  \begin{array}{l}
+    1x_1 + 2x_4 = 0 \\
+    x_2 = 0 \\
+    x_3 - x_4 = 0
+  \end{array}
+\end{equation}
+
+Imagine if we had instead a 3x3 matrix, we would had exactly the identity, or $I=0$
+then we would only have the origin as the solution of the system of equations. For any
+additional colulmn that we have on the right side, in $F$, we have another variable
+that we can use to generate solutions for this system. These variables are also
+referred as /free-variables/, such as $x_4$. In this system the solution
+is the line, through the origin of the following form:
+\begin{align*}
+x = c
+\begin{bmatrix}
+-2 \\
+0 \\
+1 \\
+1
+\end{bmatrix}
+\end{align*}
+
+If we had two columns in $F$ we would have a plane. In this case we say that we
+had three /pivot variables/ and one /free variable/. The conveniency of this
+form, as known as /row-reduced echeclon form/ is that we have easily get the
+solution for $A\textbf{x}=0$ as:
+
+\begin{align*}
+N(A) = 
+\begin{bmatrix}
+-F \\
+I
+\end{bmatrix}
+\end{align*}
+
+The /pivot variables/ are just used to refer to the numbers resulting on the
+diagonal of the elimination process, the number of pivots, are also called the
+/rank/. These terminologies, although confusing, they help one quickly define
+the amount of solutions or the dimensions of a solution for a system of equations
+like the one above. For instance for any $Ax=0$ for $A$ having dimensions 3x4
+we can say that it could have at most 3 pivots, the maximum rank of this matrix,
+as the identity can only be drawn in the first three columns, and therefore the
+solution space must be at least a line, although it could also be a plane or a
+volume. that is because if we look at the columns, we have three 3d vectors, and
+necessarily the 4th column must be a linear combination of these three vectors,
+or be within this space.
+
+** Solving $A\textbf{x} = b$
+
+What would happend if we had an arbitrary vector $b$ as opposed to a vector
+of zeros? How would we be able to find all the solutions of this system of equations?
+Let's take the matrix we were just working on:
+
+\begin{align*} 
+\begin{bmatrix}
+3 & 6 & 1 & 5 \\
+6 & 6 & 1 & 11 \\
+3 & 9 & 2 & 4 
+\end{bmatrix}
+\begin{bmatrix}
+x_1 \\
+x_2 \\
+x_3 
+\end{bmatrix}
+=
+\begin{bmatrix}
+b_1 \\
+b_2 \\
+b_3 
+\end{bmatrix}
+\end{align*}
+
+One idea is to add the vector of $b$ s to the matrix $A$, and adding -1 to the
+bottom our vector $\textbf{x}$, thereby equalling the right-hand side of the
+equation to zero:
+
+\begin{align*}
+\begin{bmatrix}
+3 & 6 & 1 & 5  & b_1 \\
+6 & 6 & 1 & 11 & b_2 \\
+3 & 9 & 2 & 4  & b_3
+\end{bmatrix}
+\begin{bmatrix}
+x_1 \\
+x_2 \\
+x_3 \\
+x_4 \\
+-1
+\end{bmatrix}
+=
+\begin{bmatrix}
+0 \\
+0 \\
+0 \\ 
+\end{bmatrix}
+\end{align*}
+
+The advantage of doing this is that we can perform row operations on this
+augmented matrix, $A^b$, without changing the solutions $\textbf{x}$, notice that
+if we have changed $A$ disregarding the vector $b$ we would have changed the
+solutions! In this shape $A^bx=0$, we can proceed normally with elimination,
+literally the same steps we've performed before, but now keeping track of the
+linear combinations performed on the vector $b$, so let's perform the same
+transformations as before, in order to reach, $Ux=0$:
+ * /(r_3' \leftarrow -r_1 + r_3/)
+ * /(r_2' \leftarrow 2r_1 - r_2/)
+ * /(r_3' \leftarrow 1/2r_2 - r_3/)    
+
+we'll get the following matrix:
+
+\begin{bmatrix}
+3 & 6 & 1 & 5  & b_1 \\
+0 & 6 & 1 & -1 & 2b_1 - b_2 \\
+0 & 0 & -1/2 & 1/2  & b_1 -b_3 -b_2/2
+\end{bmatrix}
+
+Let's proceed with another transformation, from the upper triangular matrix, to
+make our lifes even easier, as these system of equations are still not trival to solve:
+ * /(r_2' \leftarrow 2r_3 + r_2/)
+ * /(r_1' \leftarrow 2r_3 + r_1/)
+ * /(r_1' \leftarrow -r_2 - r_1/)
+
+we get to the following system of equations:
+\begin{equation}
+  \begin{array}{l}
+    3x_1 + 6x_4 = -b_1 -3b_2 -4b_3 \\
+    6x_2 = 4b_1 - 2b_2 - 2b_3 \\
+    -1/2x_3 + 1/2x_4 = b_1 - b_3 - 1/2b_2 
+  \end{array}
+\end{equation}
+
+

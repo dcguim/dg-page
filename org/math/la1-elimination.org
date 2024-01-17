@@ -1,0 +1,487 @@
+#+TITLE: knowledge repo
+#+SUBTITLE: Statistics 110 - Lesson 1
+#+INCLUDE: "../navbar.html" export html
+#+SETUPFILE: ../latexheaders.org
+
+* Matrices and Elimination
+** Meaning of Matrices
+The basic problem os linear algebra is to solve a system of linear equations,
+for example, terms without exponentials, or logarithms. The matrix-form is one
+way to represent a set of linear equations - a bunch of numbers organized in
+squared form: 
+
+\begin{equation}
+  \begin{array}{l}
+    1x - 2y = -3   \\
+    8x - 4y = 0
+  \end{array}
+\end{equation}
+
+
+The system of linear equations above, could be also written in the matrix form
+$A\textbf{x} = b$. This form, \(A\textbf{x}=b\), where \(A\) is capitalized
+as it represents a $n x m$ matrix, and \(\textbf{x}\) and \(b\) represent vectors.
+The vector of unknown variables \(\textbf{x}\) is bold, nevertheless, if a
+solution for the system is found we could just write \(x\).
+
+\begin{align*}
+\begin{bmatrix}
+1 & -2 \\
+8 & -4
+\end{bmatrix}
+%
+\begin{bmatrix}
+x \\
+y
+\end{bmatrix}
+=
+\begin{bmatrix}
+-3 \\
+0
+\end{bmatrix}
+\end{align*}
+
+Simmilarly, we could have expressed the same expression in the following
+matrix form:
+
+\begin{align*}
+\begin{bmatrix}
+1 \\
+8
+\end{bmatrix}
+x +
+\begin{bmatrix}
+-2 \\
+-4
+\end{bmatrix}
+y =
+\begin{bmatrix}
+-3 \\
+0
+\end{bmatrix}
+\end{align*}
+
+This can be also seen as the linear combination of the columns in the sense
+of which two number $x$ and $y$ solve the system of equations so that the
+the first row and the second row satisfy the equation, we can see for
+instance that $x=1, y=2$ is a solution for such $A\textbf{x} = b$
+matrix equation at some point \(x = \{1, 2\}\):
+[[file:../img/la1-1.png]]
+
+
+Notice that these system of equations are two lines in the 2 dimensional
+space. There is a solution if the two lines meet, otherwise, if the
+lines are parallel to each other there will be no solution. It could
+also be the case that these lines won't ever cross, if they are
+parallel to each other, in this case, there would be no solution
+for \(\textbf{x}\). Moreover, these could also be on top of each
+other, meaning there would be infinite solutions \(x\)
+for \(\textbf{x}\), or points along the line. 
+
+Now, it's pretty clear, by eyeballing the rows that the point \((1,2)\)
+solves the equation. We can also see this relationship if we think in terms of
+vectors instead of lines, by looking at the columns.
+file:../img/la1-2.png
+
+We can notice that by adding one of column vector 1 with two of column vector 2
+we get to the result vector. We can say that there is a linear combination of
+columns 1 and 2 that satisfies the equation, and by linear combination we mean
+that there are values for \(x\) and \(y\), or there is a vector, that satisfy the
+equation. Moreover, we mean that we can combine column 1 and column 2 in such a
+way to reach the vector as in the picture above.
+
+If rows are a multiple of each other then the columns also are, and vice versa
+we get into the situation on the line or row representation where the lines are
+parallel to each other, and on the vector or column representation that they
+sit on top of each other, and pointing to the same direction. In this case, there
+is no solution, that means that if we cannot draw a triangle in the vector
+representation, and the graph above ends up looking like a straight line then
+there is no solution for \textbf{x}.
+
+** Elimination
+*** Defining solutions
+  Back in high-school we all learned that we can solve a system of equations by
+  multiplying one equation into the other until we are able to fix the value of
+  of unknown, substitute this value into the other equations until we found one
+  value for all the unknown, for example, by multiplying 8 times row 1 into row 1
+  for the system of equations (1), we have:
+\begin{equation}
+  \begin{array}{l}
+    1x - 2y = -3   \\
+    0x + 12y = 24
+  \end{array}
+\end{equation}
+This is a nice shape because, we can now find \(y = 2\) then substitute in the
+first equation to find the value of \(x\). Therefore, we can claim that a matrix
+equation \(A\textbf{x}=b\) has a solution if we manage to put the matrix in the
+form \(U\textbf{x}=c\), where \(U\) is this triangular shaped matrix where the
+elements in the bottom left are all zero, as in the matrix below:
+
+\begin{bmatrix}
+a_{11} & a_{12} & a_{13} \\
+0 & a_{22} & a_{23} \\
+0 & 0 & a_{33}
+\end{bmatrix}
+
+*** Rows vs Column operations
+ Let's take a 3x3 matrix:
+\begin{align*} 
+A =
+\begin{bmatrix}
+3 & 2 & 7 \\
+7 & 1 & -10 \\
+8 & 2 & -5
+\end{bmatrix}
+\end{align*} 
+
+What matrix \(E\) would I need multiply to my original matrix \(A\) to remove
+the element \(a_31 = 8\) ? I would need to add row 1 (\(r_1\)) an specific amount
+of times \(t\) to row 3 (\(r_3\)), s.t. \(3t + 8 = 0\), hence, the multiplying
+factor we are looking for is \(-8/3\). However, it is not obvious which matrix
+to build to perform this operation and finally end up with:
+
+\begin{bmatrix}
+3 & 2 & 7 \\
+7 & 1 & -10 \\
+0 & -10/3 & -71/3
+\end{bmatrix}
+
+If we multiply a slight modification of the identity matrix by A, playing with
+the positioning of a constant factor \(k\) we can understand the impact how the
+positioning of $k$ in the identity matrix influebeginnces our matrix, in the form
+\(I' A\) and \(A I'\). For example look at the outcomes of the following
+examples:
+
+\begin{align*} 
+\begin{bmatrix}
+k & 0 & 0 \\
+0 & 1 & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+%
+\begin{bmatrix}
+3 & 2 & 7 \\
+7 & 1 & -10 \\
+8 & 2 & -5
+\end{bmatrix}
+=
+\begin{bmatrix}
+3k & 2k & 7k \\
+7 & 1 & -10 \\
+8 & 2 & -5
+\end{bmatrix}
+\end{align*} 
+
+\begin{align*} 
+\begin{bmatrix}
+3 & 2 & 7 \\
+7 & 1 & -10 \\
+8 & 2 & -5
+\end{bmatrix}
+%
+\begin{bmatrix}
+1 & 0 & 0 \\
+0 & k & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+=
+\begin{bmatrix}
+3 & 2k & 7 \\
+7 & 1k & -10 \\
+8 & 2k & -5
+\end{bmatrix}
+\end{align*} 
+
+Therefore if we would like to build a matrix $E$ we could simply apply our factor
+$t$ in the following position, by performing \(I' A\):
+
+\begin{align*} 
+\begin{bmatrix}
+1 & 0 & 0 \\
+0 & 1 & 0 \\
+\textbf{-8/3} & 0 & 1
+\end{bmatrix}
+%
+\begin{bmatrix}
+3 & 2 & 7 \\
+7 & 1 & -10 \\
+8 & 2 & -5
+\end{bmatrix}
+=
+\begin{bmatrix}
+3 & 2 & 7 \\
+7 & 1 & -10 \\
+0 & -10/3 & -71/3
+\end{bmatrix}
+\end{align*} 
+
+Notice that the first top two rows are unchanged, we are essentially reassigning
+the value of \(-8/3.r_1 + r_3\) to \(r_3'\). If we have applied the
+slightly modified identity matrix $I'$ on the right side, as in, \(A I'\) we would
+have performed a completely different opperation, namely,
+\(c_1' \leftarrow-8/3.c_1 + c_3\). Hence, the order of matrix multiplication matters.
+
+*** Invertible matrices
+If we continue to perform these elimination steps $E$ by constructing slight
+modification of the identity with a factor $t$ which makes an element $a_{ij}$
+zero, we may or may not achieve the desired triangular matrix $U$.
+
+We can find the matrix $U$ if, and only if, we can find a matrix $A^{-1}$ such
+that: \(A A^{-1} = I\)
+
+Let's try to reason if a matrix, or system of equations, have a solution, or
+is invertible. We mentioned that if a matrix represent parallel lines, or vectors
+in the same direction, it won't have a solution, for instance a matrix such as
+the following:
+
+\begin{align*} 
+A =
+\begin{bmatrix}
+1 & 3 \\
+2 & 6 \\
+\end{bmatrix}
+\end{align*} 
+
+That's because regardless of the matrix that we multiply by it, say:
+
+\begin{align*} 
+\begin{bmatrix}
+1 & 3 \\
+2 & 6 \\
+\end{bmatrix}
+\begin{bmatrix}
+a & b \\
+c & d \\
+\end{bmatrix}
+=
+\begin{bmatrix}
+1 \\
+2 \\
+\end{bmatrix}
+\begin{bmatrix}
+a & b
+\end{bmatrix}
++
+\begin{bmatrix}
+3 \\
+6 \\
+\end{bmatrix}
+\begin{bmatrix}
+b & d \\
+\end{bmatrix}
+=
+\begin{bmatrix}
+a + 3b & a - 3d \\
+2a + 6b & 2b + 6d \\
+\end{bmatrix}
+\end{align*}
+
+We will always end up with a matrix that it's columns are a linear combination
+of the columns of $A$, that means, that in terms of vectors we are always creating
+vectors in the direction of \(\{1,2\}\), so we will never be able to reach the
+identify matrix $I$, as it is compose of two vectors in two directions
+perpendicular to each other. More concisely, we can think as invertible matrices
+that there is no *non-zero* vector $x$ such that the following relationship holds:
+\[A\textbf{x} = 0\]
+
+For the example above we can easily find such an $x = \{3, -1\}$, for example. If
+there is such an $x$ we could get to the following contradiction:
+\[Ax = 0 \Rightarrow A^{-1}Ax = A^{-1}0 \Rightarrow Ix = 0 \Rightarrow x = 0\]
+
+However, per definition, $x$ must be non-zero.
+
+*** Gauss-Jordan
+Now that we know how to determine if a matrix is or not invertible. It would also
+be interesting to define what is the invertible matrix correspondent of a
+particular matrix $A$, say:
+
+\begin{align*} 
+A = 
+\begin{bmatrix}
+1 & 4 \\
+2 & 6 \\
+\end{bmatrix}
+\end{align*}
+
+The idea of Jordan-Gauss is to create an expanded matrix of the following form:
+
+\begin{align*}
+\begin{bmatrix}
+1 & 4 & 1 & 0 \\
+2 & 6 & 0 & 1 \\
+\end{bmatrix}
+=
+\begin{bmatrix}
+A & I \\
+\end{bmatrix}
+\end{align*}
+
+and to jointly perform elimination steps in this expanded matrix until we
+inverted the identity and achieved the following form:
+
+\begin{align*}
+\begin{bmatrix}
+1 & 0 & a & c \\
+0 & 1 & b & d \\
+\end{bmatrix}
+=
+\begin{bmatrix}
+I & A^{-1}
+\end{bmatrix}
+\end{align*} 
+
+and the desired $A^{-1}$ would be the matrix on second half of the expanded form.
+
+So the inverse of the matrix can be calculated by performing the following
+transformations:
+
+\begin{align*}
+\begin{bmatrix}
+1 & 2 \\
+0 & 1 \\
+\end{bmatrix}
+\begin{bmatrix}
+1 & 0 \\
+-2 & 1 \\
+\end{bmatrix}
+\begin{bmatrix}
+1 & 4 & 1 & 0 \\
+2 & 6 & 0 & 1 \\
+\end{bmatrix}
+=
+\begin{bmatrix}
+1 & 0 & -3 & 2 \\
+0 & -2 & -2 & 1 \\
+\end{bmatrix}
+=
+-1/2
+\begin{bmatrix}
+1 & 0 & -3 & 2 \\
+0 & 1 & 1 & -1/2 \\
+\end{bmatrix}
+\end{align*}
+
+Therefore the inverse matrix is:
+\begin{align*}
+A^{-1} = 
+\begin{bmatrix}
+-3 & 2 \\
+1 & -1/2 \\
+\end{bmatrix}
+\end{align*}
+
+*** A = LU factorization
+
+We now can take one elimination step of the form: \(E.A = A'\)
+
+and we know that if we take enough of these steps we can reach an matrix $U$,
+with an *u*pper-triangular form, where the bottom left elements are all zeros.
+Notice that the amount of elimination steps are all defined by the size of the
+matrix, for instance for a single 2x2 matrix, a single elimination step is
+required:
+\[E_{21}A = U\]
+
+For a 3x3 matrix we would need: \(E_{32}E_{31}E_{21}A = U\)
+
+What if we would like to define the, operation which decomposes a into $U$, for
+instance, what kind of transformation $L$ would we need to perform in $U$ to get
+back to $A$. Let's take an arbitrary 3x3 matrix:
+
+\begin{align*}
+A = 
+\begin{bmatrix}
+1 & 3 & 6 \\
+2 & 2 & -1 \\
+8 & 4 & 4 \\
+\end{bmatrix}
+\end{align*}
+
+Let's first determine the elimination steps required in order to achieve $U$:
+
+\begin{align*}
+\begin{bmatrix}
+1 & 0 & 0 \\
+0 & 1 & 0 \\
+0 & -5 & 1 \\
+\end{bmatrix}
+\begin{bmatrix}
+1 & 0 & 0 \\
+0 & 1 & 0 \\
+-8 & 0 & 1 \\
+\end{bmatrix}
+\begin{bmatrix}
+1 & 0 & 0 \\
+-2 & 1 & 0 \\
+0 & 0 & 1 \\
+\end{bmatrix}
+\begin{bmatrix}
+1 & 3 & 6 \\
+2 & 2 & -1 \\
+8 & 4 & 4 \\
+\end{bmatrix}
+ =
+\begin{bmatrix}
+1 & 3 & 6 \\
+0 & -4 & -13 \\
+0 & 0 & -21 \\
+\end{bmatrix}
+\end{align*}
+
+Notice we could have also represented these elimination steps in the by the ordered
+sequence of row operations:
+\[r_2' \leftarrow -2r_1 + r_2\]
+\[r_3' \leftarrow -8r_1 + r_3\]
+\[r_3' \leftarrow -5r_2' + r_3\]
+
+This sequence of operations could be also squeezed into one by combining
+$E_{32}E_{31}E_{21}$ into a single matrix $E$, yielding the following equation:
+
+\begin{align*}
+\begin{bmatrix}
+1 & 0 & 0 \\
+-2 & 1 & 0 \\
+2 & -5 & 1 \\
+\end{bmatrix}
+A
+ =
+\begin{bmatrix}
+1 & 3 & 6 \\
+0 & -4 & -13 \\
+0 & 0 & -21 \\
+\end{bmatrix}
+\end{align*}
+
+If we nevertheless calculate the inverse of the matrix $E$ we would obtain the
+following:
+\begin{align*}
+E^{-1} = 
+\begin{bmatrix}
+1 & 0 & 0 \\
+2 & 1 & 0 \\
+8 & 5 & 1
+\end{bmatrix}
+\end{align*}
+
+Unlike $E$ we are able to observe exactly which row transformations were required
+in order take $A$ to the upper-triangular form $U$. Therefore, this form using
+$L$ or lower-triangular form, as in $A = L U$, is preferred over the form $E A = U$. 
+\begin{align*}
+A = 
+\begin{bmatrix}
+1 & 3 & 6 \\
+2 & 2 & -1 \\
+8 & 4 & 4 \\
+\end{bmatrix}
+=
+\begin{bmatrix}
+1 & 0 & 0 \\
+2 & 1 & 0 \\
+8 & 5 & 1
+\end{bmatrix}
+\begin{bmatrix}
+1 & 3 & 6 \\
+0 & -4 & -13 \\
+0 & 0 & -21 \\
+\end{bmatrix}
+= L U
+\end{align*}
